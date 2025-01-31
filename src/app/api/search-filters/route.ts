@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     //https://7dc9-119-73-100-76.ngrok-free.app
     // Forward the filters to the FastAPI backend
     const response = await fetch(
-      "https://airbnb-booking-com-scraper.onrender.com/scrape",
+      `${process.env.NEXT_PUBLIC_API_URL}/api/search-filters`,
       {
         method: "POST",
         headers: {

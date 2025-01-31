@@ -21,7 +21,7 @@ export default function AdminControl() {
 
   const fetchUsers = async () => {
     const response = await fetch(
-      "https://property-website-lime.vercel.app/api/users"
+      `${process.env.NEXT_PUBLIC_API_URL}/api/users`
     );
     const data = await response.json();
     const filteredUsers = data.filter(
@@ -32,7 +32,7 @@ export default function AdminControl() {
 
   const deleteUser = async (email) => {
     const response = await fetch(
-      `https://property-website-lime.vercel.app/api/users?email=${encodeURIComponent(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/users?email=${encodeURIComponent(
         email
       )}`,
       {
@@ -50,16 +50,13 @@ export default function AdminControl() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const res = await fetch(
-      "https://property-website-lime.vercel.app/api/register",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: newEmail, password: newPassword }),
-      }
-    );
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: newEmail, password: newPassword }),
+    });
 
     if (res.ok) {
       setNewEmail("");

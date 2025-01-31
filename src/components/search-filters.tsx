@@ -199,7 +199,7 @@ export function SearchFilters({ onSearch, isLoading }: SearchFiltersProps) {
       };
 
       const response = await fetch(
-        "https://property-website-lime.vercel.app/api/search-filters",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/search-filters`,
         {
           method: "POST",
           headers: {
