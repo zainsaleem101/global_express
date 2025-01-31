@@ -198,13 +198,16 @@ export function SearchFilters({ onSearch, isLoading }: SearchFiltersProps) {
           : null,
       };
 
-      const response = await fetch("/api/search-filters", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        "https://property-website-lime.vercel.app/api/search-filters",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to send filter data");

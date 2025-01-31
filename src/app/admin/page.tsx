@@ -20,7 +20,9 @@ export default function AdminControl() {
   }, [router]);
 
   const fetchUsers = async () => {
-    const response = await fetch("/api/users");
+    const response = await fetch(
+      "https://property-website-lime.vercel.app/api/users"
+    );
     const data = await response.json();
     const filteredUsers = data.filter(
       (user) => user.email !== "info@trotamundo9.com"
@@ -30,7 +32,9 @@ export default function AdminControl() {
 
   const deleteUser = async (email) => {
     const response = await fetch(
-      `/api/users?email=${encodeURIComponent(email)}`,
+      `https://property-website-lime.vercel.app/api/users?email=${encodeURIComponent(
+        email
+      )}`,
       {
         method: "DELETE",
       }
@@ -46,13 +50,16 @@ export default function AdminControl() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: newEmail, password: newPassword }),
-    });
+    const res = await fetch(
+      "https://property-website-lime.vercel.app/api/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: newEmail, password: newPassword }),
+      }
+    );
 
     if (res.ok) {
       setNewEmail("");
