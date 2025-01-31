@@ -1,0 +1,211 @@
+export interface Property {
+  id: string;
+  title: string;
+  location: string;
+  price: number;
+  originalPrice?: number; // For showing price cuts/deals
+  rating: number;
+  reviewCount: number;
+  imageUrl: string;
+  link: string;
+  amenities: string[];
+  bedrooms: number;
+  bathrooms: number;
+  maxGuests: number;
+  type: string; // apartment, house, villa, etc.
+  superhost?: boolean; // for Airbnb
+  genius?: boolean; // for Booking.com
+  cancelPolicy: string;
+  highlights?: string[];
+}
+
+export const AIRBNB_PROPERTIES: Property[] = [
+  {
+    id: "a1",
+    title: "Luxury Oceanfront Penthouse with Private Pool",
+    location: "Miami Beach, FL",
+    price: 299,
+    originalPrice: 350,
+    rating: 4.92,
+    reviewCount: 156,
+    imageUrl: "/placeholder.svg?height=300&width=400",
+    link: "https://airbnb.com",
+    amenities: [
+      "Private Pool",
+      "Ocean View",
+      "Free WiFi",
+      "Kitchen",
+      "Parking",
+      "Air Conditioning",
+    ],
+    bedrooms: 3,
+    bathrooms: 2,
+    maxGuests: 6,
+    type: "Entire penthouse",
+    superhost: true,
+    cancelPolicy: "Free cancellation up to 24 hours before check-in",
+    highlights: ["Beachfront", "Superhost", "Highly rated for cleanliness"],
+  },
+  {
+    id: "a2",
+    title: "Modern Downtown Loft with City Views",
+    location: "Downtown Miami, FL",
+    price: 150,
+    rating: 4.85,
+    reviewCount: 92,
+    imageUrl: "/placeholder.svg?height=300&width=400",
+    link: "https://airbnb.com",
+    amenities: ["City View", "WiFi", "Gym", "Pool", "Workspace"],
+    bedrooms: 1,
+    bathrooms: 1,
+    maxGuests: 2,
+    type: "Entire loft",
+    superhost: true,
+    cancelPolicy: "Free cancellation up to 48 hours before check-in",
+    highlights: ["Great location", "Quick responses", "Stylish space"],
+  },
+  {
+    id: "a3",
+    title: "Cozy Beach Studio with Private Terrace",
+    location: "South Beach, FL",
+    price: 120,
+    rating: 4.78,
+    reviewCount: 203,
+    imageUrl: "/placeholder.svg?height=300&width=400",
+    link: "https://airbnb.com",
+    amenities: [
+      "Beach Access",
+      "WiFi",
+      "Kitchen",
+      "Terrace",
+      "Air Conditioning",
+    ],
+    bedrooms: 0,
+    bathrooms: 1,
+    maxGuests: 2,
+    type: "Entire studio",
+    cancelPolicy: "Flexible cancellation",
+    highlights: ["Close to beach", "Great value", "Self check-in"],
+  },
+  {
+    id: "a4",
+    title: "Luxurious Villa with Private Garden",
+    location: "Coral Gables, Miami, FL",
+    price: 450,
+    rating: 4.95,
+    reviewCount: 67,
+    imageUrl: "/placeholder.svg?height=300&width=400",
+    link: "https://airbnb.com",
+    amenities: [
+      "Private Garden",
+      "Pool",
+      "BBQ",
+      "Parking",
+      "WiFi",
+      "Full Kitchen",
+    ],
+    bedrooms: 4,
+    bathrooms: 3.5,
+    maxGuests: 8,
+    type: "Entire villa",
+    superhost: true,
+    cancelPolicy: "Strict - Free cancellation for 48 hours",
+    highlights: ["Perfect for families", "Superhost", "Sparkling clean"],
+  },
+];
+
+export const BOOKING_PROPERTIES: Property[] = [
+  {
+    id: "b1",
+    title: "Oceanfront Resort & Spa - Deluxe Ocean View Room",
+    location: "Miami Beach, FL",
+    price: 279,
+    originalPrice: 329,
+    rating: 4.8,
+    reviewCount: 1205,
+    imageUrl: "/placeholder.svg?height=300&width=400",
+    link: "https://booking.com",
+    amenities: [
+      "Spa Access",
+      "Ocean View",
+      "Room Service",
+      "Free WiFi",
+      "Breakfast Included",
+    ],
+    bedrooms: 1,
+    bathrooms: 1,
+    maxGuests: 2,
+    type: "Hotel Room",
+    genius: true,
+    cancelPolicy: "Free cancellation up to check-in",
+    highlights: ["Genius discount", "Breakfast included", "Beachfront"],
+  },
+  {
+    id: "b2",
+    title: "Boutique Hotel Downtown - Executive Suite",
+    location: "Downtown Miami, FL",
+    price: 189,
+    rating: 4.6,
+    reviewCount: 856,
+    imageUrl: "/placeholder.svg?height=300&width=400",
+    link: "https://booking.com",
+    amenities: [
+      "City View",
+      "Restaurant",
+      "Bar",
+      "Fitness Center",
+      "Business Center",
+    ],
+    bedrooms: 1,
+    bathrooms: 1,
+    maxGuests: 2,
+    type: "Hotel Suite",
+    genius: true,
+    cancelPolicy: "Free cancellation up to 24 hours before check-in",
+    highlights: [
+      "Central location",
+      "Highly rated breakfast",
+      "Business facilities",
+    ],
+  },
+  {
+    id: "b3",
+    title: "Beach Hotel & Suites - Premium Room",
+    location: "South Beach, FL",
+    price: 159,
+    originalPrice: 199,
+    rating: 4.4,
+    reviewCount: 2341,
+    imageUrl: "/placeholder.svg?height=300&width=400",
+    link: "https://booking.com",
+    amenities: ["Pool", "Beach Access", "WiFi", "Restaurant", "Bar"],
+    bedrooms: 1,
+    bathrooms: 1,
+    maxGuests: 3,
+    type: "Hotel Room",
+    cancelPolicy: "Non-refundable",
+    highlights: ["Close to nightlife", "Pool view", "Beach access"],
+  },
+  {
+    id: "b4",
+    title: "Luxury Resort - Garden View Suite",
+    location: "Coral Gables, Miami, FL",
+    price: 399,
+    rating: 4.9,
+    reviewCount: 543,
+    imageUrl: "/placeholder.svg?height=300&width=400",
+    link: "https://booking.com",
+    amenities: ["Garden View", "Pool", "Spa", "Fine Dining", "Butler Service"],
+    bedrooms: 1,
+    bathrooms: 1.5,
+    maxGuests: 2,
+    type: "Resort Suite",
+    genius: true,
+    cancelPolicy: "Free cancellation",
+    highlights: [
+      "Award-winning spa",
+      "Michelin-star restaurant",
+      "Luxury service",
+    ],
+  },
+];
