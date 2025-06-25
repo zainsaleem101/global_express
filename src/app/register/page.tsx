@@ -3,71 +3,107 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { LogIn, AlertCircle, Mail, Lock, Package } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  UserPlus,
+  AlertCircle,
+  CheckCircle,
+  Mail,
+  Lock,
+  User,
+} from "lucide-react";
 import { Button } from "../../../src/components/ui/button";
 import { Input } from "../../../src/components/ui/input";
 import { Label } from "../../../src/components/ui/label";
 import { Alert, AlertDescription } from "../../../src/components/ui/alert";
 import { useAuthStore } from "../../../src/lib/store/useAuthStore";
 import SiteLayout from "../../../src/components/layout/site-layout";
-import Link from "next/link";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function RegisterPage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const { login, isAuthenticated } = useAuthStore();
-
-  // Get the callback URL from the URL parameters
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const { isAuthenticated } = useAuthStore();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.push(callbackUrl);
+      router.push("/");
     }
-  }, [isAuthenticated, router, callbackUrl]);
+  }, [isAuthenticated, router]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const validateForm = () => {
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
         credentials: "include",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to login");
+        throw new Error(data.message || "Failed to register");
       }
 
-      console.log("Login successful");
+      setSuccess(true);
 
-      // Store user data and token in Zustand store
-      login(data.user, data.token);
-
-      // Wait for state to update before redirecting
+      // Redirect to login page after a short delay
       setTimeout(() => {
-        console.log("Redirecting to:", callbackUrl);
-        router.push(callbackUrl);
-      }, 500);
+        router.push("/login");
+      }, 2000);
     } catch (err) {
-      console.error("Login error:", err);
       setError(
-        err instanceof Error ? err.message : "An error occurred during login"
+        err instanceof Error
+          ? err.message
+          : "An error occurred during registration"
       );
     } finally {
       setLoading(false);
@@ -82,14 +118,12 @@ export default function LoginPage() {
           <div className="max-w-md space-y-8">
             <div className="text-center md:text-left">
               <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-8 mx-auto md:mx-0">
-                <Package className="h-10 w-10" />
+                <UserPlus className="h-10 w-10" />
               </div>
-              <h2 className="text-3xl font-bold mb-4">
-                GlobalExpress Shipping
-              </h2>
+              <h2 className="text-3xl font-bold mb-4">Join GlobalExpress</h2>
               <p className="text-lg mb-6 opacity-90">
-                Fast, reliable, and sustainable worldwide delivery services at
-                your fingertips.
+                Create an account to access exclusive shipping rates and track
+                your deliveries worldwide.
               </p>
               <div className="space-y-4">
                 <div className="bg-white/10 p-4 rounded-lg flex items-start">
@@ -134,9 +168,9 @@ export default function LoginPage() {
                     </svg>
                   </div>
                   <div>
-                    <div className="font-medium">Track Shipments</div>
+                    <div className="font-medium">Order History</div>
                     <div className="text-sm opacity-80">
-                      Real-time tracking of all your packages
+                      View and manage all your past and current shipments
                     </div>
                   </div>
                 </div>
@@ -145,13 +179,15 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right side - Login form */}
+        {/* Right side - Registration form */}
         <div className="hidden md:flex flex-1 items-center justify-center p-4 py-12 bg-white">
           <div className="mx-auto w-full max-w-md space-y-6 rounded-xl border border-blue-100 bg-white p-8 shadow-xl">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Create an Account
+              </h1>
               <p className="mt-2 text-sm text-gray-600">
-                Enter your credentials to access your account
+                Register to use our shipping services
               </p>
             </div>
 
@@ -165,7 +201,35 @@ export default function LoginPage() {
               </Alert>
             )}
 
+            {success && (
+              <Alert className="bg-green-50 text-green-800 border-green-200">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription>
+                  Registration successful! Redirecting to login page...
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Full Name
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -176,37 +240,57 @@ export default function LoginPage() {
                   </div>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formData.email}
+                    onChange={handleChange}
                     className="pl-10"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                     <Lock className="h-4 w-4" />
                   </div>
                   <Input
                     id="password"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  Password must be at least 8 characters long
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-sm font-medium"
+                >
+                  Confirm Password
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                    <Lock className="h-4 w-4" />
+                  </div>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
                     className="pl-10"
                     required
                   />
@@ -215,38 +299,40 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 h-11 font-medium"
-                disabled={loading}
+                disabled={loading || success}
               >
                 {loading ? (
-                  "Logging in..."
+                  "Registering..."
                 ) : (
                   <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Log In
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Register
                   </>
                 )}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              Already have an account?{" "}
               <Link
-                href="/register"
+                href="/login"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Sign up
+                Log In
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Mobile login form (shown when screen is small) */}
+        {/* Mobile registration form (shown when screen is small) */}
         <div className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto pt-16 px-4">
           <div className="mx-auto w-full max-w-md space-y-6 p-4">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Create an Account
+              </h1>
               <p className="mt-2 text-sm text-gray-600">
-                Enter your credentials to access your account
+                Register to use our shipping services
               </p>
             </div>
 
@@ -260,7 +346,35 @@ export default function LoginPage() {
               </Alert>
             )}
 
+            {success && (
+              <Alert className="bg-green-50 text-green-800 border-green-200">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription>
+                  Registration successful! Redirecting to login page...
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="name-mobile" className="text-sm font-medium">
+                  Full Name
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <Input
+                    id="name-mobile"
+                    name="name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email-mobile" className="text-sm font-medium">
                   Email
@@ -271,40 +385,60 @@ export default function LoginPage() {
                   </div>
                   <Input
                     id="email-mobile"
+                    name="email"
                     type="email"
                     placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formData.email}
+                    onChange={handleChange}
                     className="pl-10"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="password-mobile"
-                    className="text-sm font-medium"
-                  >
-                    Password
-                  </Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label
+                  htmlFor="password-mobile"
+                  className="text-sm font-medium"
+                >
+                  Password
+                </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                     <Lock className="h-4 w-4" />
                   </div>
                   <Input
                     id="password-mobile"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  Password must be at least 8 characters long
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="confirmPassword-mobile"
+                  className="text-sm font-medium"
+                >
+                  Confirm Password
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                    <Lock className="h-4 w-4" />
+                  </div>
+                  <Input
+                    id="confirmPassword-mobile"
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
                     className="pl-10"
                     required
                   />
@@ -313,26 +447,26 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 h-11 font-medium"
-                disabled={loading}
+                disabled={loading || success}
               >
                 {loading ? (
-                  "Logging in..."
+                  "Registering..."
                 ) : (
                   <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Log In
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Register
                   </>
                 )}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              Already have an account?{" "}
               <Link
-                href="/register"
+                href="/login"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Sign up
+                Log In
               </Link>
             </div>
           </div>
