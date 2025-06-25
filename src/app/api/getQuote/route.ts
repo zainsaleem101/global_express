@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
     // Construct the GetQuote request payload
     const getQuoteRequest = {
       Credentials: {
-        APIKey: process.env.TRANSGLOBAL_API_KEY_TEST || "5heQZ7Xrz3",
-        Password: process.env.TRANSGLOBAL_API_PASSWORD_TEST || "bzHiFd?4Z2",
+        APIKey: process.env.TRANSGLOBAL_API_KEY || "5heQZ7Xrz3",
+        Password: process.env.TRANSGLOBAL_API_PASSWORD || "bzHiFd?4Z2",
       },
       Shipment: {
         Consignment: {
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
 
     // Make the API request to Transglobal Express GetQuote endpoint
     const apiResponse = await fetch(
-      "https://staging2.services3.transglobalexpress.co.uk/Quote/V2/GetQuote",
+      "https://services3.transglobalexpress.co.uk/Quote/V2/GetQuote",
       {
         method: "POST",
         headers: {
