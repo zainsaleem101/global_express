@@ -12,7 +12,9 @@ export async function POST(request: Request) {
     const data = await request.json();
 
     // Log the received data
-    console.log("Received shipping form data:", JSON.stringify(data, null, 2));
+    if (process.env.NODE_ENV === "development") {
+      console.log("Received shipping form data:", JSON.stringify(data, null, 2));
+    }
 
     // Validate quantity and packages
     const quantity = Number.parseInt(data.quantity, 10);

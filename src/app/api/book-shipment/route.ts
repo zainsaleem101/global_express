@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
     // Construct the BookShipment request payload using QuoteSelection
     const bookShipmentRequest = {
       Credentials: {
-        APIKey: process.env.TRANSGLOBAL_API_KEY_TEST || "5heQZ7Xrz3",
-        Password: process.env.TRANSGLOBAL_API_PASSWORD_TEST || "bzHiFd?4Z2",
+        APIKey: process.env.TRANSGLOBAL_API_KEY || "5heQZ7Xrz3",
+        Password: process.env.TRANSGLOBAL_API_PASSWORD || "bzHiFd?4Z2",
       },
       QuoteSelection: {
         QuoteID: quoteId,
@@ -91,8 +91,10 @@ export async function POST(request: NextRequest) {
       </BookShipmentRequest>
     `.trim();
 
-    // Log the XML request body for debugging
-    console.log("BookShipment XML Request (QuoteSelection):", xmlBody);
+    // Log the XML request body for debugging (only in development)
+    if (process.env.NODE_ENV === "development") {
+      console.log("BookShipment XML Request (QuoteSelection):", xmlBody);
+    }
 
     // Make the API request to Transglobal Express
     const apiResponse = await fetch(
@@ -113,8 +115,10 @@ export async function POST(request: NextRequest) {
 
     const responseText = await apiResponse.text();
 
-    // Log the full API response to the console
-    console.log("BookShipment API Response:", responseText);
+    // Log the full API response to the console (only in development)
+    if (process.env.NODE_ENV === "development") {
+      console.log("BookShipment API Response:", responseText);
+    }
 
     // Parse XML response to JSON using xml2js
     const parser = new xml2js.Parser({ explicitArray: false, trim: true });
@@ -148,8 +152,6 @@ export async function POST(request: NextRequest) {
         {
           message: errorMessage,
           response: responseText,
-          xmlRequest: xmlBody,
-          xmlResponse: responseText,
         },
         { status: 400 }
       );
@@ -170,8 +172,6 @@ export async function POST(request: NextRequest) {
         message: "Shipment booked and order saved successfully",
         orderId: order._id,
         shipmentDetails: bookShipmentResponse,
-        xmlRequest: xmlBody,
-        xmlResponse: responseText,
       },
       { status: 200 }
     );

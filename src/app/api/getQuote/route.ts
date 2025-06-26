@@ -225,9 +225,9 @@ export async function POST(request: NextRequest) {
     `.trim();
 
     // Log the XML request body for debugging
-    console.log("GetQuote XML Request:", xmlBody);
-
-
+    if (process.env.NODE_ENV === "development") {
+      console.log("GetQuote XML Request:", xmlBody);
+    }
 
     // Make the API request to Transglobal Express GetQuote endpoint
     // const apiResponse = await fetch(
@@ -248,7 +248,9 @@ export async function POST(request: NextRequest) {
     const responseText = await apiResponse.text();
 
     // Log the full API response to the console
-    console.log("GetQuote API Response:", responseText);
+    if (process.env.NODE_ENV === "development") {
+      console.log("GetQuote API Response:", responseText);
+    }
 
     return NextResponse.json(
       { message: "Quote retrieved successfully", response: responseText },

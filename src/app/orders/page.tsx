@@ -83,29 +83,9 @@ export default function OrdersPage() {
     );
   }
 
-  // Filter orders based on active tab
-  const filteredOrders = orders.filter((order) => {
-    if (activeTab === "all") return true;
-    return order.status === activeTab;
-  });
-
-  // Get status badge color
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "processing":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "shipped":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "delivered":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
+  // Remove all tabs except one "Orders" tab and remove usage of order.status
+  // Filter orders (no need to filter by status anymore)
+  const filteredOrders = orders;
 
   // Helper function to safely format currency
   const formatCurrency = (value: any): string => {
@@ -146,20 +126,15 @@ export default function OrdersPage() {
 
         <div className="w-full max-w-2xl">
           <Tabs
-            defaultValue="all"
-            value={activeTab}
-            onValueChange={setActiveTab}
+            defaultValue="orders"
+            value="orders"
             className="w-full"
           >
-            <TabsList className="mb-6 grid w-full grid-cols-5">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="processing">Processing</TabsTrigger>
-              <TabsTrigger value="shipped">Shipped</TabsTrigger>
-              <TabsTrigger value="delivered">Delivered</TabsTrigger>
+            <TabsList className="mb-6 w-full">
+              <TabsTrigger value="orders">Orders</TabsTrigger>
             </TabsList>
 
-            <TabsContent value={activeTab} className="mt-0">
+            <TabsContent value="orders" className="mt-0">
               {loading ? (
                 // Loading skeletons
                 <div className="space-y-4">
@@ -197,9 +172,7 @@ export default function OrdersPage() {
                     No orders found
                   </h3>
                   <p className="mt-1 text-gray-500">
-                    {activeTab === "all"
-                      ? "You haven't placed any orders yet."
-                      : `You don&apos;t have any ${activeTab} orders.`}
+                    You haven&apos;t placed any orders yet.
                   </p>
                   <Button
                     className="mt-6 bg-blue-600 hover:bg-blue-700"
@@ -221,13 +194,7 @@ export default function OrdersPage() {
                           <CardTitle className="text-lg">
                             Order #{order._id.substring(order._id.length - 8)}
                           </CardTitle>
-                          <Badge
-                            className={`${getStatusColor(
-                              order.shipmentDetails.Status
-                            )} capitalize`}
-                          >
-                            {order.shipmentDetails.Status.toLowerCase()}
-                          </Badge>
+                          {/* Removed status badge */}
                         </div>
                         <CardDescription>
                           Placed{" "}

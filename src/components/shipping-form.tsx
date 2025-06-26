@@ -334,7 +334,7 @@ export default function ShippingForm() {
         },
       };
 
-      const response = await fetch("/api/shipping", {
+      const response = await fetch("/api/getQuoteMinimal", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
