@@ -61,11 +61,12 @@ export async function POST(request: Request) {
       path: "/",
     });
 
-    console.log("Login successful, generated token for user:", user.email);
-
     return response;
   } catch (error) {
-    console.error("Error during login:", error);
+    // Only log in development environment
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error during login:", error);
+    }
     return NextResponse.json(
       { message: "An error occurred during login" },
       { status: 500 }

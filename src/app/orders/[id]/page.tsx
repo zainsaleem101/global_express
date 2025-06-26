@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import SiteLayout from "../../../../src/components/layout/site-layout";
 import { useAuthStore } from "../../../../src/lib/store/useAuthStore";
 import { Button } from "../../../../src/components/ui/button";
@@ -15,28 +16,10 @@ import { Skeleton } from "../../../../src/components/ui/skeleton";
 import { AlertCircle, ArrowLeft, Download, FileText } from "lucide-react";
 import { format } from "date-fns";
 import type { Order } from "../../../../src/lib/types/order";
+import { pdfjs } from "react-pdf";
 
-// Convert Base64 to Blob URL for PDF preview with enhanced error handling
-const base64ToBlobUrl = (
-  base64: string,
-  type: string = "application/pdf"
-): string | null => {
-  try {
-    // Remove any potential prefix (e.g., "data:application/pdf;base64," if present)
-    const cleanBase64 = base64.replace(/^data:application\/pdf;base64,/, "");
-    const byteCharacters = atob(cleanBase64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type });
-    return URL.createObjectURL(blob);
-  } catch (e) {
-    console.error("Error converting Base64 to Blob:", e);
-    return null;
-  }
-};
+// Initialize pdf.js worker with a compatible modern version
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.mjs`;
 
 export default function OrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,8 +28,10 @@ export default function OrderDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, loading: authLoading } = useAuthStore();
   const router = useRouter();
+  const [pdfPreviews, setPdfPreviews] = useState<{ [key: string]: string }>({});
+  const [pdfUrls, setPdfUrls] = useState<{ [key: string]: string }>({});
+  const [pdfErrors, setPdfErrors] = useState<{ [key: string]: string }>({});
 
-  // Memoize the fetch function
   const fetchOrderDetails = useCallback(async () => {
     if (!id) return;
 
@@ -79,36 +64,193 @@ export default function OrderDetailsPage() {
     }
   }, [id]);
 
+  // Function to validate Base64, create Blob URL, and generate preview
+  const createPdfPreview = useCallback(async (base64: string, type: string) => {
+    try {
+      // Validate input
+      if (!base64 || typeof base64 !== "string") {
+        throw new Error("Invalid Base64 data");
+      }
+
+      // Remove any data URI prefix and whitespace
+      let cleanBase64 = base64
+        .replace(/^data:application\/pdf;base64,/, "")
+        .trim();
+
+      // Ensure proper Base64 padding
+      const paddingNeeded = cleanBase64.length % 4;
+      if (paddingNeeded !== 0) {
+        cleanBase64 += "=".repeat(4 - paddingNeeded);
+      }
+
+      // Validate Base64 format
+      if (!/^[A-Za-z0-9+/=]+$/.test(cleanBase64)) {
+        throw new Error("Malformed Base64 string");
+      }
+
+      // Additional validation: Check for reasonable Base64 length
+      if (cleanBase64.length < 1000) {
+        throw new Error("Base64 string too short, likely invalid PDF");
+      }
+
+      // Decode Base64
+      let binary;
+      try {
+        binary = atob(cleanBase64);
+      } catch (err) {
+        throw new Error("Base64 decoding failed: Invalid data");
+      }
+
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        array[i] = binary.charCodeAt(i);
+      }
+
+      // Create Blob
+      const blob = new Blob([array], { type: "application/pdf" });
+      if (blob.size < 100) {
+        throw new Error("PDF content is too small, likely invalid");
+      }
+
+      // Create Blob URL for download
+      const url = URL.createObjectURL(blob);
+
+      // Generate preview of the first page
+      const pdf = await pdfjs.getDocument(url).promise;
+      const page = await pdf.getPage(1); // Get only the first page
+      const viewport = page.getViewport({ scale: 0.5 }); // Scale down for thumbnail
+
+      // Create canvas for rendering
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      // Render PDF page to canvas
+      await page.render({
+        canvasContext: context!,
+        viewport,
+      }).promise;
+
+      // Convert canvas to image
+      const previewUrl = canvas.toDataURL("image/png");
+
+      return { url, previewUrl };
+    } catch (err) {
+      console.error(`Error creating PDF preview for ${type}:`, err);
+      setPdfErrors((prev) => ({
+        ...prev,
+        [type]: `Failed to generate preview for ${type}: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }. Please try downloading again.`,
+      }));
+      return null;
+    }
+  }, []);
+
+  // Generate PDF previews and URLs when order data is loaded
   useEffect(() => {
-    // Don&apos;t do anything if still loading auth
-    if (authLoading) {
-      return;
-    }
+    if (order && order.shipmentDetails) {
+      const newPdfUrls: { [key: string]: string } = {};
+      const newPdfPreviews: { [key: string]: string } = {};
+      const newPdfErrors: { [key: string]: string } = {};
 
-    // If not authenticated, let the Header component handle the redirect
-    // Don&apos;t force redirect to login here as it conflicts with logout
+      // Process Labels
+      if (order.shipmentDetails.Labels?.Label) {
+        const labels = Array.isArray(order.shipmentDetails.Labels.Label)
+          ? order.shipmentDetails.Labels.Label
+          : [order.shipmentDetails.Labels.Label];
+        labels.forEach((label, index) => {
+          if (label.LabelContent) {
+            createPdfPreview(
+              label.LabelContent,
+              `Label ${index + 1} (${label.LabelSize})`
+            ).then((result) => {
+              if (result) {
+                newPdfUrls[`label-${index}`] = result.url;
+                newPdfPreviews[`label-${index}`] = result.previewUrl;
+                setPdfUrls((prev) => ({
+                  ...prev,
+                  [`label-${index}`]: result.url,
+                }));
+                setPdfPreviews((prev) => ({
+                  ...prev,
+                  [`label-${index}`]: result.previewUrl,
+                }));
+              } else {
+                newPdfErrors[
+                  `label-${index}`
+                ] = `Failed to generate preview for Label ${index + 1} (${
+                  label.LabelSize
+                }). Please try downloading again.`;
+                setPdfErrors((prev) => ({
+                  ...prev,
+                  [`label-${index}`]: newPdfErrors[`label-${index}`],
+                }));
+              }
+            });
+          }
+        });
+      }
+
+      // Process Documents
+      if (order.shipmentDetails.Documents?.Document) {
+        const documents = Array.isArray(
+          order.shipmentDetails.Documents.Document
+        )
+          ? order.shipmentDetails.Documents.Document
+          : [order.shipmentDetails.Documents.Document];
+        documents.forEach((doc, index) => {
+          if (doc.Content) {
+            createPdfPreview(doc.Content, `${doc.DocumentType}`).then(
+              (result) => {
+                if (result) {
+                  newPdfUrls[`document-${index}`] = result.url;
+                  newPdfPreviews[`document-${index}`] = result.previewUrl;
+                  setPdfUrls((prev) => ({
+                    ...prev,
+                    [`document-${index}`]: result.url,
+                  }));
+                  setPdfPreviews((prev) => ({
+                    ...prev,
+                    [`document-${index}`]: result.previewUrl,
+                  }));
+                } else {
+                  newPdfErrors[
+                    `document-${index}`
+                  ] = `Failed to generate preview for ${doc.DocumentType}. Please try downloading again.`;
+                  setPdfErrors((prev) => ({
+                    ...prev,
+                    [`document-${index}`]: newPdfErrors[`document-${index}`],
+                  }));
+                }
+              }
+            );
+          }
+        });
+      }
+
+      // Cleanup Blob URLs on component unmount
+      return () => {
+        Object.values(newPdfUrls).forEach((url) => URL.revokeObjectURL(url));
+      };
+    }
+  }, [order, createPdfPreview]);
+
+  useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
+      router.push("/login");
       return;
     }
-
-    // Fetch order details only if authenticated
     fetchOrderDetails();
-  }, [isAuthenticated, authLoading, fetchOrderDetails]);
+  }, [isAuthenticated, authLoading, fetchOrderDetails, router]);
 
-  // Format currency
   const formatCurrency = (value: any): string => {
     if (value === null || value === undefined) return "N/A";
     const num = typeof value === "string" ? parseFloat(value) : Number(value);
     if (isNaN(num)) return "N/A";
     return `£${num.toFixed(2)}`;
-  };
-
-  // Handle PDF load error
-  const onPdfLoadError = (index: number, type: string) => {
-    console.error(
-      `PDF Load Error for ${type} ${index + 1}: Failed to load document`
-    );
-    setError(`Failed to load ${type} ${index + 1}. Check console for details.`);
   };
 
   if (authLoading) {
@@ -131,8 +273,7 @@ export default function OrderDetailsPage() {
           className="mb-4 flex items-center gap-2 pl-0 text-gray-600 hover:text-gray-900"
           onClick={() => router.push("/orders")}
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Orders
+          <ArrowLeft className="h-4 w-4" /> Back to Orders
         </Button>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
           Order Details
@@ -165,8 +306,7 @@ export default function OrderDetailsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-6 w-6 text-blue-600" />
-                  Order Summary
+                  <FileText className="h-6 w-6 text-blue-600" /> Order Summary
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -234,8 +374,7 @@ export default function OrderDetailsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                    Invoice Item
+                    <FileText className="h-6 w-6 text-blue-600" /> Invoice Item
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -256,51 +395,54 @@ export default function OrderDetailsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Download className="h-6 w-6 text-blue-600" />
-                    Labels
+                    <Download className="h-6 w-6 text-blue-600" /> Labels
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {order.shipmentDetails.Labels.Label.map((label, index) => (
+                    {(Array.isArray(order.shipmentDetails.Labels.Label)
+                      ? order.shipmentDetails.Labels.Label
+                      : [order.shipmentDetails.Labels.Label]
+                    ).map((label, index) => (
                       <div key={index} className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium">
                             Label {index + 1} ({label.LabelSize})
                           </h4>
-                          {label.DownloadURL && (
+                          {pdfUrls[`label-${index}`] ? (
                             <a
-                              href={label.DownloadURL}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              href={pdfUrls[`label-${index}`]}
+                              download={`Label_${index + 1}_${
+                                label.LabelSize
+                              }.pdf`}
                               className="text-blue-600 hover:underline flex items-center gap-1"
                             >
-                              <Download className="h-4 w-4" />
-                              Download
+                              <Download className="h-4 w-4" /> Download
                             </a>
+                          ) : (
+                            <span className="text-gray-500 flex items-center gap-1">
+                              <Download className="h-4 w-4" /> Processing...
+                            </span>
                           )}
                         </div>
-                        {label.LabelContent && (
-                          <div className="mt-2">
-                            <object
-                              data={base64ToBlobUrl(label.LabelContent)}
-                              type="application/pdf"
-                              width="100%"
-                              height="500px"
-                              onError={() => onPdfLoadError(index, "Label")}
-                            >
-                              <p>
-                                PDF preview not available.{" "}
-                                <a
-                                  href={label.DownloadURL}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  Download here
-                                </a>
-                                .
-                              </p>
-                            </object>
+                        {pdfErrors[`label-${index}`] ? (
+                          <div className="text-red-600 text-center">
+                            {pdfErrors[`label-${index}`]}
+                          </div>
+                        ) : pdfPreviews[`label-${index}`] ? (
+                          <Image
+                            src={pdfPreviews[`label-${index}`]}
+                            alt={`Preview of Label ${index + 1} (${
+                              label.LabelSize
+                            })`}
+                            width={300}
+                            height={400}
+                            unoptimized
+                            className="w-full max-w-xs h-auto rounded-lg border"
+                          />
+                        ) : (
+                          <div className="text-gray-500 text-center">
+                            Generating preview...
                           </div>
                         )}
                       </div>
@@ -314,8 +456,7 @@ export default function OrderDetailsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                    Documents
+                    <FileText className="h-6 w-6 text-blue-600" /> Documents
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -327,39 +468,36 @@ export default function OrderDetailsPage() {
                       <div key={index} className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium">{doc.DocumentType}</h4>
-                          {doc.DownloadURL && (
+                          {pdfUrls[`document-${index}`] ? (
                             <a
-                              href={doc.DownloadURL}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              href={pdfUrls[`document-${index}`]}
+                              download={`${doc.DocumentType}.pdf`}
                               className="text-blue-600 hover:underline flex items-center gap-1"
                             >
-                              <Download className="h-4 w-4" />
-                              Download
+                              <Download className="h-4 w-4" /> Download
                             </a>
+                          ) : (
+                            <span className="text-gray-500 flex items-center gap-1">
+                              <Download className="h-4 w-4" /> Processing...
+                            </span>
                           )}
                         </div>
-                        {doc.Content && (
-                          <div className="mt-2">
-                            <object
-                              data={base64ToBlobUrl(doc.Content)}
-                              type="application/pdf"
-                              width="100%"
-                              height="500px"
-                              onError={() => onPdfLoadError(index, "Document")}
-                            >
-                              <p>
-                                PDF preview not available.{" "}
-                                <a
-                                  href={doc.DownloadURL}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  Download here
-                                </a>
-                                .
-                              </p>
-                            </object>
+                        {pdfErrors[`document-${index}`] ? (
+                          <div className="text-red-600 text-center">
+                            {pdfErrors[`document-${index}`]}
+                          </div>
+                        ) : pdfPreviews[`document-${index}`] ? (
+                          <Image
+                            src={pdfPreviews[`document-${index}`]}
+                            alt={`Preview of ${doc.DocumentType}`}
+                            width={300}
+                            height={400}
+                            unoptimized
+                            className="w-full max-w-xs h-auto rounded-lg border"
+                          />
+                        ) : (
+                          <div className="text-gray-500 text-center">
+                            Generating preview...
                           </div>
                         )}
                       </div>

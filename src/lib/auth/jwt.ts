@@ -35,7 +35,10 @@ export function verifyToken(token: string): UserPayload | null {
     const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
     return decoded;
   } catch (error) {
-    console.error("Token verification failed:", error);
+    // Only log in development environment
+    if (process.env.NODE_ENV === "development") {
+      console.error("Token verification failed:", error);
+    }
     return null;
   }
 }

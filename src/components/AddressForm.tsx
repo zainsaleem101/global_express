@@ -85,7 +85,7 @@ export default function AddressForm({
       newErrors.collectionAddressLine1 = "Address Line 1 is required";
     if (!collection.city) newErrors.collectionCity = "City is required";
     if (!collection.countryState)
-      newErrors.collectionCountryState = "Country/State is required";
+      newErrors.collectionCountryState = "State is required";
     if (!collection.postcode)
       newErrors.collectionPostcode = "Postcode is required";
     if (!collection.country)
@@ -99,7 +99,7 @@ export default function AddressForm({
       newErrors.deliveryAddressLine1 = "Address Line 1 is required";
     if (!delivery.city) newErrors.deliveryCity = "City is required";
     if (!delivery.countryState)
-      newErrors.deliveryCountryState = "Country/State is required";
+      newErrors.deliveryCountryState = "State is required";
     if (!delivery.postcode) newErrors.deliveryPostcode = "Postcode is required";
     if (!delivery.country) newErrors.deliveryCountry = "Country is required";
 
@@ -274,7 +274,7 @@ export default function AddressForm({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Country/State *
+              State *
             </label>
             <input
               type="text"
@@ -489,7 +489,7 @@ export default function AddressForm({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Country/State *
+              State *
             </label>
             <input
               type="text"

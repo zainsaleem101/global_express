@@ -12,7 +12,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Only check auth once when the component mounts
-    console.log("AuthProvider: Checking authentication...");
     checkAuth();
   }, [checkAuth]); // Include checkAuth in dependencies
 

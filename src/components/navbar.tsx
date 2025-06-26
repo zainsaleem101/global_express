@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { User, LogIn, UserPlus, LogOut, Menu, X } from "lucide-react";
+import {
+  User,
+  LogIn,
+  UserPlus,
+  LogOut,
+  Menu,
+  X,
+  Home,
+  Calculator,
+  MapPin,
+} from "lucide-react";
 import { Button } from "../../src/components/ui/button";
 import { useState } from "react";
 import { useAuthStore } from "../../src/lib/store/useAuthStore";
@@ -21,8 +31,6 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      console.log("Logging out...");
-
       // Call the logout API endpoint
       await fetch("/api/auth/logout", {
         method: "POST",
@@ -30,20 +38,29 @@ export default function Navbar() {
       });
 
       // Update local state
-      logout(); // This calls the Zustand logout which ALSO calls the API!
+      logout();
+      setIsMenuOpen(false);
     } catch (error) {
-      console.error("Logout error:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Logout error:", error);
+      }
     }
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
   };
 
   return (
     <>
-      <header className="border-b bg-white">
-        <div className="container flex h-14 sm:h-16 items-center justify-between px-4 md:px-6">
+      <header className="border-b bg-white sticky top-0 z-50">
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+          {/* Logo */}
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="text-lg sm:text-xl font-bold text-blue-600"
+              className="text-xl font-bold text-blue-600"
+              onClick={closeMenu}
             >
               GlobalExpress
             </Link>
@@ -52,38 +69,68 @@ export default function Navbar() {
             </span>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleMenu}
-              className="p-1"
-            >
-              {isMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`flex items-center gap-2 ${
+                  pathname === "/"
+                    ? "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <Home className="h-4 w-4" />
+                Home
+              </Button>
+            </Link>
+            <Link href="/booking">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`flex items-center gap-2 ${
+                  pathname === "/booking"
+                    ? "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <Calculator className="h-4 w-4" />
+                Get Quote
+              </Button>
+            </Link>
+            <Link href="/orders">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`flex items-center gap-2 ${
+                  pathname === "/orders"
+                    ? "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <MapPin className="h-4 w-4" />
+                Track Orders
+              </Button>
+            </Link>
+          </nav>
 
-          {/* Desktop auth buttons */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Desktop Auth Buttons */}
+          <div className="hidden md:flex items-center gap-3">
             {isAuthenticated && user ? (
               <>
-                <div className="flex items-center mr-2 text-sm">
-                  <User className="h-4 w-4 mr-1 text-blue-600" />
-                  <span>{user.name}</span>
+                <div className="flex items-center text-sm text-gray-700">
+                  <User className="h-4 w-4 mr-2 text-blue-600" />
+                  <span className="font-medium">{user.name}</span>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-2"
                   onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  Logout
                 </Button>
               </>
             ) : (
@@ -92,132 +139,153 @@ export default function Navbar() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-2"
                   >
                     <LogIn className="h-4 w-4" />
-                    <span>Login</span>
+                    Login
                   </Button>
                 </Link>
                 <Link href="/register">
                   <Button
                     variant="default"
                     size="sm"
-                    className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700"
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
                   >
                     <UserPlus className="h-4 w-4" />
-                    <span>Register</span>
+                    Register
                   </Button>
                 </Link>
               </>
             )}
           </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMenu}
+              className="p-2"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
       </header>
 
-      {/* Mobile menu */}
+      {/* Mobile menu overlay */}
       {isMenuOpen && (
-        <div className="md:hidden border-b bg-white">
-          <div className="container py-3 px-4 space-y-2">
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50"
+          onClick={closeMenu}
+        />
+      )}
+
+      {/* Mobile menu */}
+      <div
+        className={`md:hidden fixed top-16 left-0 right-0 z-50 bg-white border-b shadow-lg transition-transform duration-300 ease-in-out ${
+          isMenuOpen ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
+        <div className="container py-4 px-4">
+          {/* Navigation Links */}
+          <nav className="mb-6">
+            <div className="space-y-2">
+              <Link
+                href="/"
+                onClick={closeMenu}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                  pathname === "/"
+                    ? "bg-blue-50 text-blue-600"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <Home className="h-5 w-5" />
+                <span className="font-medium">Home</span>
+              </Link>
+              <Link
+                href="/booking"
+                onClick={closeMenu}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                  pathname === "/booking"
+                    ? "bg-blue-50 text-blue-600"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <Calculator className="h-5 w-5" />
+                <span className="font-medium">Get Quote</span>
+              </Link>
+              <Link
+                href="/orders"
+                onClick={closeMenu}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                  pathname === "/orders"
+                    ? "bg-blue-50 text-blue-600"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <MapPin className="h-5 w-5" />
+                <span className="font-medium">Track Orders</span>
+              </Link>
+            </div>
+          </nav>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 mb-6" />
+
+          {/* Auth Section */}
+          <div className="space-y-4">
             {isAuthenticated && user ? (
               <>
-                <div className="flex items-center text-sm py-1">
-                  <User className="h-4 w-4 mr-2 text-blue-600" />
-                  <span>{user.name}</span>
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <User className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="font-medium text-gray-900">{user.name}</p>
+                    <p className="text-sm text-gray-500">{user.email}</p>
+                  </div>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full flex items-center justify-center gap-1"
-                  onClick={() => {
-                    handleLogout();
-                    setIsMenuOpen(false);
-                  }}
+                  className="w-full flex items-center justify-center gap-2"
+                  onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  Logout
                 </Button>
               </>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block"
-                >
+              <div className="space-y-3">
+                <Link href="/login" onClick={closeMenu} className="block">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full flex items-center justify-center gap-1"
+                    className="w-full flex items-center justify-center gap-2"
                   >
                     <LogIn className="h-4 w-4" />
-                    <span>Login</span>
+                    Login
                   </Button>
                 </Link>
-                <Link
-                  href="/register"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block"
-                >
+                <Link href="/register" onClick={closeMenu} className="block">
                   <Button
                     variant="default"
                     size="sm"
-                    className="w-full flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700"
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
                   >
                     <UserPlus className="h-4 w-4" />
-                    <span>Register</span>
+                    Register
                   </Button>
                 </Link>
               </div>
             )}
           </div>
         </div>
-      )}
-
-      <nav className="border-b bg-white">
-        <div className="container h-12 px-4 md:px-6 overflow-x-auto">
-          <div className="flex items-center gap-1 text-sm whitespace-nowrap">
-            <Link href="/">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={
-                  pathname === "/"
-                    ? "bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
-                    : ""
-                }
-              >
-                Home
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={
-                  pathname === "/quote"
-                    ? "bg-green-500 text-white hover:bg-green-600 hover:text-white"
-                    : ""
-                }
-              >
-                Quote
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={
-                  pathname === "/track"
-                    ? "bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
-                    : ""
-                }
-              >
-                Track
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      </div>
     </>
   );
 }

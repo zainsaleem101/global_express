@@ -35,7 +35,6 @@ export const useAuthStore = create<AuthState>()(
       setAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
 
       login: (user, token) => {
-        console.log("Login called with user:", user ? user.name : "No user");
         set({
           user,
           isAuthenticated: true,
@@ -46,7 +45,6 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
-        console.log("Logout called");
         set({ loading: true });
         try {
           await fetch("/api/auth/logout", {
@@ -54,7 +52,9 @@ export const useAuthStore = create<AuthState>()(
             credentials: "include",
           });
         } catch (error) {
-          console.error("Error during logout:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error during logout:", error);
+          }
         }
         set({
           user: null,
@@ -69,19 +69,14 @@ export const useAuthStore = create<AuthState>()(
 
         // If we're already loading, don't start another request
         if (state.loading) {
-          console.log(
-            "Auth check already in progress, skipping duplicate call"
-          );
           return;
         }
 
         // If auth has been checked and we have a user, don't check again
         if (state.authChecked && state.isAuthenticated && state.user) {
-          console.log("User already authenticated, skipping auth check");
           return;
         }
 
-        console.log("Starting auth check...");
         set({ loading: true });
 
         try {
@@ -90,7 +85,6 @@ export const useAuthStore = create<AuthState>()(
           });
           if (response.ok) {
             const data = await response.json();
-            console.log("Auth check successful, user authenticated");
             set({
               user: data.user,
               isAuthenticated: true,
@@ -98,7 +92,6 @@ export const useAuthStore = create<AuthState>()(
               authChecked: true,
             });
           } else {
-            console.log("Auth check failed, user not authenticated");
             set({
               user: null,
               isAuthenticated: false,
@@ -107,7 +100,9 @@ export const useAuthStore = create<AuthState>()(
             });
           }
         } catch (error) {
-          console.error("Auth check error:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Auth check error:", error);
+          }
           set({
             user: null,
             isAuthenticated: false,
@@ -118,7 +113,6 @@ export const useAuthStore = create<AuthState>()(
       },
 
       resetAuth: () => {
-        console.log("Resetting auth state");
         set({
           user: null,
           isAuthenticated: false,
