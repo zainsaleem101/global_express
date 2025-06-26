@@ -148,6 +148,8 @@ export async function POST(request: NextRequest) {
         {
           message: errorMessage,
           response: responseText,
+          xmlRequest: xmlBody,
+          xmlResponse: responseText,
         },
         { status: 400 }
       );
@@ -168,6 +170,8 @@ export async function POST(request: NextRequest) {
         message: "Shipment booked and order saved successfully",
         orderId: order._id,
         shipmentDetails: bookShipmentResponse,
+        xmlRequest: xmlBody,
+        xmlResponse: responseText,
       },
       { status: 200 }
     );

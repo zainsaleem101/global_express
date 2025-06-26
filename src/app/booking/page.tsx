@@ -47,6 +47,8 @@ export default function BookingPage() {
   const [quoteId, setQuoteId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [xmlRequest, setXmlRequest] = useState<string | null>(null);
+  const [xmlResponse, setXmlResponse] = useState<string | null>(null);
 
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuthStore();
@@ -265,6 +267,9 @@ export default function BookingPage() {
       });
 
       const data = await response.json();
+      setXmlRequest(data.xmlRequest || null);
+      setXmlResponse(data.xmlResponse || null);
+
       if (response.ok) {
         // Clear localStorage after successful booking
         localStorage.removeItem("bookingData");
@@ -406,6 +411,26 @@ export default function BookingPage() {
                   </svg>
                   <span className="font-medium">{error}</span>
                 </div>
+                {xmlRequest && (
+                  <div className="mt-4">
+                    <div className="font-semibold text-xs text-gray-700 mb-1">
+                      XML Request:
+                    </div>
+                    <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-60">
+                      {xmlRequest}
+                    </pre>
+                  </div>
+                )}
+                {xmlResponse && (
+                  <div className="mt-4">
+                    <div className="font-semibold text-xs text-gray-700 mb-1">
+                      XML Response:
+                    </div>
+                    <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-60">
+                      {xmlResponse}
+                    </pre>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -767,6 +792,27 @@ export default function BookingPage() {
                     </div>
                   </div>
                 </CardContent>
+                {/* Show XML request/response for debugging */}
+                {xmlRequest && (
+                  <div className="mt-6 text-left">
+                    <div className="font-semibold text-xs text-gray-700 mb-1">
+                      XML Request:
+                    </div>
+                    <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-60">
+                      {xmlRequest}
+                    </pre>
+                  </div>
+                )}
+                {xmlResponse && (
+                  <div className="mt-4 text-left">
+                    <div className="font-semibold text-xs text-gray-700 mb-1">
+                      XML Response:
+                    </div>
+                    <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-60">
+                      {xmlResponse}
+                    </pre>
+                  </div>
+                )}
               </Card>
             )}
           </div>
