@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
     // Construct the GetQuote request payload
     const getQuoteRequest = {
       Credentials: {
-        APIKey: process.env.TRANSGLOBAL_API_KEY || "5heQZ7Xrz3",
-        Password: process.env.TRANSGLOBAL_API_PASSWORD || "bzHiFd?4Z2",
+        APIKey: process.env.TRANSGLOBAL_API_KEY_TEST || "5heQZ7Xrz3",
+        Password: process.env.TRANSGLOBAL_API_PASSWORD_TEST || "bzHiFd?4Z2",
       },
       Shipment: {
         Consignment: {
@@ -225,11 +225,16 @@ export async function POST(request: NextRequest) {
     `.trim();
 
     // Log the XML request body for debugging
-    console.log("GetQuote XML Request:", xmlBody);
+    if (process.env.NODE_ENV === "development") {
+      console.log("GetQuote XML Request:", xmlBody);
+    }
 
     // Make the API request to Transglobal Express GetQuote endpoint
+    // const apiResponse = await fetch(
+    //   "https://services3.transglobalexpress.co.uk/Quote/V2/GetQuote",
+
     const apiResponse = await fetch(
-      "https://services3.transglobalexpress.co.uk/Quote/V2/GetQuote",
+      "https://staging2.services3.transglobalexpress.co.uk/Quote/V2/GetQuote",
       {
         method: "POST",
         headers: {
@@ -243,7 +248,9 @@ export async function POST(request: NextRequest) {
     const responseText = await apiResponse.text();
 
     // Log the full API response to the console
-    console.log("GetQuote API Response:", responseText);
+    if (process.env.NODE_ENV === "development") {
+      console.log("GetQuote API Response:", responseText);
+    }
 
     return NextResponse.json(
       { message: "Quote retrieved successfully", response: responseText },

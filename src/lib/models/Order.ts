@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, Document, Types } from "mongoose";
+import mongoose, { Schema, model, models, Document, Types } from "mongoose";
 import type { IUser } from "./User";
 
 // Define the Order interface
@@ -18,5 +18,6 @@ const OrderSchema: Schema<IOrder> = new Schema<IOrder>(
   { timestamps: true }
 );
 
-// Export the Order model (reuse if already defined)
-export default mongoose.models.Order || model<IOrder>("Order", OrderSchema);
+// THIS IS CRUCIAL FOR NEXT.JS APP DIRECTORY:
+export default (models.Order as mongoose.Model<IOrder>) ||
+  model<IOrder>("Order", OrderSchema);

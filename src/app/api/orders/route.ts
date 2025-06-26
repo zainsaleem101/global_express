@@ -104,15 +104,6 @@ export async function POST(req: NextRequest) {
     const transformedOrder: Order = {
       _id: newOrder._id.toString(),
       userId: newOrder.userId.toString(),
-      status: newOrder.shipmentDetails.Status.toLowerCase() as
-        | "pending"
-        | "processing"
-        | "shipped"
-        | "delivered"
-        | "cancelled",
-      trackingNumber: newOrder.shipmentDetails.Labels[0]?.AirWaybillReference,
-      serviceType: newOrder.shipmentDetails.Labels[0]?.ServiceName,
-      carrierName: newOrder.shipmentDetails.Labels[0]?.CarrierName,
       createdAt: newOrder.createdAt.toISOString(),
       updatedAt: newOrder.updatedAt.toISOString(),
       shipmentDetails: newOrder.shipmentDetails,

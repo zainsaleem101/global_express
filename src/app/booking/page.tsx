@@ -265,12 +265,13 @@ export default function BookingPage() {
       });
 
       const data = await response.json();
+
       if (response.ok) {
         // Clear localStorage after successful booking
         localStorage.removeItem("bookingData");
         setStep(4);
       } else {
-        setError(data.error || "Failed to book shipment");
+        setError(data.message || data.error || "Failed to book shipment");
       }
     } catch (err: any) {
       setError("Error booking shipment: " + err.message);
