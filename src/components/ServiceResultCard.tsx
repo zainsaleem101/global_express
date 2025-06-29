@@ -19,6 +19,7 @@ import { useAuthStore } from "../../src/lib/store/useAuthStore";
 import {
   useShippingStore,
   formatWeight,
+  loadFormDataFromSession,
 } from "../../src/lib/store/useShippingStore";
 import type { ServiceResult } from "../../src/lib/types/shipping";
 
@@ -30,12 +31,19 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const { setSelectedService, measurementUnit } = useShippingStore();
+  const { setSelectedService, measurementUnit, setMinimalFormData } =
+    useShippingStore();
 
   const handleServiceSelection = () => {
     if (!isAuthenticated) {
       router.push("/login");
       return;
+    }
+
+    // Load minimal form data from session storage and save to store
+    const minimalFormData = loadFormDataFromSession();
+    if (minimalFormData) {
+      setMinimalFormData(minimalFormData);
     }
 
     // Store the selected service in Zustand

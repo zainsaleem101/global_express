@@ -110,17 +110,6 @@ export const useAuthStore = create<AuthState>()(
               authChecked: true,
               token: undefined,
             });
-
-            if (
-              typeof window !== "undefined" &&
-              window.location.pathname !== "/login"
-            ) {
-              const currentPath = window.location.pathname;
-              const loginUrl = `/login?callbackUrl=${encodeURIComponent(
-                currentPath
-              )}`;
-              window.location.href = loginUrl;
-            }
           } else {
             set({
               user: null,

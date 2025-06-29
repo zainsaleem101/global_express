@@ -24,6 +24,7 @@ import {
   useShippingStore,
   formatWeight,
 } from "../../lib/store/useShippingStore";
+import { useCountries } from "../../lib/utils/api";
 
 interface BookingData {
   collectionAddress: Address | null;
@@ -54,7 +55,26 @@ export default function BookingPage() {
 
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuthStore();
-  const { measurementUnit } = useShippingStore();
+  const { measurementUnit, minimalFormData } = useShippingStore();
+  const { data: countries = [] } = useCountries();
+
+  // Helper function to get CountryCode from CountryID
+  const getCountryCodeFromId = (countryId: string) => {
+    if (!countryId) return "";
+    console.log("Looking for CountryID:", countryId, "Type:", typeof countryId);
+    console.log(
+      "Available countries:",
+      countries.map((c) => ({
+        id: c.CountryID,
+        code: c.CountryCode,
+        title: c.Title,
+      }))
+    );
+
+    const country = countries.find((c) => c.CountryID.toString() === countryId);
+    console.log("Found country:", country);
+    return country ? country.CountryCode : "";
+  };
 
   // Check authentication on component mount
   useEffect(() => {
@@ -64,28 +84,118 @@ export default function BookingPage() {
     }
   }, [isAuthenticated, authLoading, router]);
 
-  // Load data from localStorage on component mount
+  // Load data from localStorage and pre-fill with minimal form data
   useEffect(() => {
+    console.log("=== Booking page useEffect triggered ===");
+    console.log("minimalFormData:", minimalFormData);
+    console.log("countries length:", countries.length);
+
     const savedData = localStorage.getItem("bookingData");
+    let parsedData: BookingData | null = null;
+
     if (savedData) {
       try {
-        const parsedData: BookingData = JSON.parse(savedData);
-        if (parsedData.collectionAddress)
-          setCollectionAddress(parsedData.collectionAddress);
-        if (parsedData.deliveryAddress)
-          setDeliveryAddress(parsedData.deliveryAddress);
-        if (parsedData.packageItems.length > 0)
-          setPackageItems(parsedData.packageItems);
-        if (parsedData.reasonForShipment)
-          setReasonForShipment(parsedData.reasonForShipment);
-        if (parsedData.collectionDate)
-          setCollectionDate(parsedData.collectionDate);
-        if (parsedData.readyFrom) setReadyFrom(parsedData.readyFrom);
+        parsedData = JSON.parse(savedData);
       } catch (error) {
         console.error("Error parsing saved booking data:", error);
       }
     }
-  }, []);
+
+    // Debug: Log minimal form data
+    console.log("Minimal form data:", minimalFormData);
+    console.log("Countries loaded:", countries.length);
+
+    // Pre-fill addresses with minimal form data if available
+    if (minimalFormData) {
+      const fromCountryCode = getCountryCodeFromId(minimalFormData.fromCountry);
+      const toCountryCode = getCountryCodeFromId(minimalFormData.toCountry);
+
+      console.log(
+        "From Country ID:",
+        minimalFormData.fromCountry,
+        "-> Code:",
+        fromCountryCode
+      );
+      console.log(
+        "To Country ID:",
+        minimalFormData.toCountry,
+        "-> Code:",
+        toCountryCode
+      );
+
+      const preFilledCollection: Address = {
+        forename: "",
+        surname: "",
+        email: "",
+        phone: "",
+        companyName: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        countryState: "",
+        postcode: minimalFormData.fromPostcode || "",
+        country: fromCountryCode,
+      };
+
+      const preFilledDelivery: Address = {
+        forename: "",
+        surname: "",
+        email: "",
+        phone: "",
+        companyName: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        countryState: "",
+        postcode: minimalFormData.toPostcode || "",
+        country: toCountryCode,
+      };
+
+      console.log("Pre-filled collection address:", preFilledCollection);
+      console.log("Pre-filled delivery address:", preFilledDelivery);
+
+      // Use saved data if available, otherwise use pre-filled data
+      if (parsedData?.collectionAddress) {
+        setCollectionAddress({
+          ...preFilledCollection,
+          ...parsedData.collectionAddress,
+        });
+      } else {
+        setCollectionAddress(preFilledCollection);
+      }
+
+      if (parsedData?.deliveryAddress) {
+        setDeliveryAddress({
+          ...preFilledDelivery,
+          ...parsedData.deliveryAddress,
+        });
+      } else {
+        setDeliveryAddress(preFilledDelivery);
+      }
+    } else {
+      // Load saved data without pre-filling
+      if (parsedData?.collectionAddress) {
+        setCollectionAddress(parsedData.collectionAddress);
+      }
+      if (parsedData?.deliveryAddress) {
+        setDeliveryAddress(parsedData.deliveryAddress);
+      }
+    }
+
+    // Load other saved data
+    if (parsedData?.packageItems.length > 0) {
+      setPackageItems(parsedData.packageItems);
+    }
+    if (parsedData?.reasonForShipment) {
+      setReasonForShipment(parsedData.reasonForShipment);
+    }
+    if (parsedData?.collectionDate) {
+      setCollectionDate(parsedData.collectionDate);
+    }
+    if (parsedData?.readyFrom) {
+      setReadyFrom(parsedData.readyFrom);
+    }
+  }, [minimalFormData, countries]);
 
   // Show loading state while checking auth
   if (authLoading) {

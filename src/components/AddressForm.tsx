@@ -22,6 +22,7 @@ export default function AddressForm({
   initialCollection = null,
   initialDelivery = null,
 }: AddressFormProps) {
+  // Force re-initialization when props change by using a key
   const [collection, setCollection] = useState<Partial<Address>>(
     initialCollection || {}
   );
@@ -33,24 +34,39 @@ export default function AddressForm({
   // Use the custom hook to fetch and cache countries
   const { data: countries = [], isError, error } = useCountries();
 
-  // Update form when initial values change
+  // Update form when initial values change - force complete replacement
   useEffect(() => {
+    console.log("AddressForm: initialCollection changed", initialCollection);
+    console.log("AddressForm: initialDelivery changed", initialDelivery);
+
     if (initialCollection) {
       setCollection(initialCollection);
+    } else {
+      setCollection({});
     }
     if (initialDelivery) {
       setDelivery(initialDelivery);
+    } else {
+      setDelivery({});
     }
   }, [initialCollection, initialDelivery]);
 
+  // Debug: Log current form state
+  useEffect(() => {
+    console.log("AddressForm: Current collection state", collection);
+    console.log("AddressForm: Current delivery state", delivery);
+  }, [collection, delivery]);
+
   // Helper function to get CountryID from CountryCode
   const getCountryIdFromCode = (countryCode: string) => {
+    if (!countryCode) return "";
     const country = countries.find((c) => c.CountryCode === countryCode);
     return country ? country.CountryID.toString() : "";
   };
 
   // Helper function to get CountryCode from CountryID
   const getCountryCodeFromId = (countryId: string) => {
+    if (!countryId) return "";
     const country = countries.find((c) => c.CountryID.toString() === countryId);
     return country ? country.CountryCode : "";
   };
@@ -277,11 +293,16 @@ export default function AddressForm({
             </label>
             <input
               type="text"
-              className={inputClass}
+              className={`${inputClass} ${
+                initialCollection?.postcode
+                  ? "bg-gray-100 cursor-not-allowed"
+                  : ""
+              }`}
               value={collection.postcode || ""}
               onChange={(e) =>
                 setCollection({ ...collection, postcode: e.target.value })
               }
+              readOnly={!!initialCollection?.postcode}
             />
             {errors.collectionPostcode && (
               <p className={errorClass}>{errors.collectionPostcode}</p>
@@ -302,8 +323,15 @@ export default function AddressForm({
                   country: selectedCountry?.CountryCode || "",
                 });
               }}
+              disabled={!!initialCollection?.country}
             >
-              <SelectTrigger className={inputClass}>
+              <SelectTrigger
+                className={`${inputClass} ${
+                  initialCollection?.country
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : ""
+                }`}
+              >
                 <SelectValue placeholder="Select a country" />
               </SelectTrigger>
               <SelectContent>
@@ -492,11 +520,16 @@ export default function AddressForm({
             </label>
             <input
               type="text"
-              className={inputClass}
+              className={`${inputClass} ${
+                initialDelivery?.postcode
+                  ? "bg-gray-100 cursor-not-allowed"
+                  : ""
+              }`}
               value={delivery.postcode || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, postcode: e.target.value })
               }
+              readOnly={!!initialDelivery?.postcode}
             />
             {errors.deliveryPostcode && (
               <p className={errorClass}>{errors.deliveryPostcode}</p>
@@ -517,8 +550,15 @@ export default function AddressForm({
                   country: selectedCountry?.CountryCode || "",
                 });
               }}
+              disabled={!!initialDelivery?.country}
             >
-              <SelectTrigger className={inputClass}>
+              <SelectTrigger
+                className={`${inputClass} ${
+                  initialDelivery?.country
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : ""
+                }`}
+              >
                 <SelectValue placeholder="Select a country" />
               </SelectTrigger>
               <SelectContent>

@@ -5,35 +5,28 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { ArrowRight, AlertCircle, Info } from "lucide-react";
 
-import { Button } from "../../src/components/ui/button";
-import { Input } from "../../src/components/ui/input";
-import { Label } from "../../src/components/ui/label";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "../../src/components/ui/radio-group";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../src/components/ui/select";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "../../src/components/ui/alert";
+} from "./ui/select";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import ServiceResultCard from "./ServiceResultCard";
-import type { ICountry } from "../../src/lib/models/Country"; // Import the interface
+import type { ICountry } from "../lib/models/Country"; // Import the interface
 import {
   saveFormDataToSession,
   loadFormDataFromSession,
   useShippingStore,
-} from "../../src/lib/store/useShippingStore";
-import type { PackageDimensions } from "../../src/lib/types/order";
-import type { ServiceResult } from "../../src/lib/types/shipping";
-import { fetchCountries, useCountries } from "../../src/lib/utils/api";
+} from "../lib/store/useShippingStore";
+import type { PackageDimensions } from "../lib/types/order";
+import type { ServiceResult } from "../lib/types/shipping";
+import { fetchCountries, useCountries } from "../lib/utils/api";
 
 // Export the FormData type for use in the store
 export interface FormData {

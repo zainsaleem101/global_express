@@ -51,19 +51,35 @@ export default function OrdersPage() {
   }, []);
 
   useEffect(() => {
-    // Don&apos;t do anything if still loading auth
+    // Don't do anything if still loading auth
     if (authLoading) {
       return;
     }
 
     // If not authenticated, let the Header component handle the redirect
-    // Don&apos;t force redirect to login here as it conflicts with logout
+    // Don't force redirect to login here as it conflicts with logout
     if (!isAuthenticated) {
       return;
     }
 
-    fetchOrders();
-  }, [isAuthenticated, authLoading, fetchOrders]);
+    // Fetch orders directly in the effect to avoid double calls
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data: { orders: Order[] } = await apiRequest("/api/orders");
+        setOrders(data.orders);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, [isAuthenticated, authLoading]);
 
   // Show loading state while checking auth
   if (authLoading) {
@@ -81,8 +97,10 @@ export default function OrdersPage() {
   const filteredOrders = orders;
 
   // Helper function to safely format currency
-  const formatCurrency = (num: number) => {
-    return `$${num.toFixed(2)}`;
+  const formatCurrency = (num: any) => {
+    // Convert to number and handle null/undefined/string cases
+    const numberValue = typeof num === "number" ? num : parseFloat(num) || 0;
+    return `$${numberValue.toFixed(2)}`;
   };
 
   // Helper to get carrier from ItemDescription

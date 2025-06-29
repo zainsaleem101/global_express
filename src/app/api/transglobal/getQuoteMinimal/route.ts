@@ -94,6 +94,7 @@ export async function POST(request: Request) {
     );
 
     const apiData = await apiResponse.json();
+    console.log(apiData);
 
     // Convert prices to USD
     // console.log(JSON.stringify(apiData));

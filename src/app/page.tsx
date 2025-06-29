@@ -1,4 +1,4 @@
-import ShippingForm from "../../src/components/shipping-form";
+import ShippingForm from "../components/minimal-shipping-form";
 import SiteLayout from "../../src/components/layout/site-layout";
 
 export const metadata = {
