@@ -10,6 +10,13 @@ export interface UserPayload {
   name: string;
 }
 
+export interface TokenVerificationResult {
+  valid: boolean;
+  user?: UserPayload;
+  error?: string;
+  expired?: boolean;
+}
+
 /**
  * Generate a JWT token for the user
  */
@@ -40,6 +47,30 @@ export function verifyToken(token: string): UserPayload | null {
       console.error("Token verification failed:", error);
     }
     return null;
+  }
+}
+
+/**
+ * Verify a JWT token and return detailed result
+ */
+export function verifyTokenWithDetails(token: string): TokenVerificationResult {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
+    return {
+      valid: true,
+      user: decoded,
+    };
+  } catch (error: any) {
+    // Only log in development environment
+    if (process.env.NODE_ENV === "development") {
+      console.error("Token verification failed:", error);
+    }
+
+    return {
+      valid: false,
+      error: error.message,
+      expired: error.name === "TokenExpiredError",
+    };
   }
 }
 

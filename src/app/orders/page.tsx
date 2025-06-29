@@ -24,6 +24,7 @@ import { Skeleton } from "../../../src/components/ui/skeleton";
 import { Package, Truck, Calendar, Clock, ShoppingBag } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import type { Order } from "../../../src/lib/types/order";
+import { apiRequest } from "../../../src/lib/utils/api";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -39,15 +40,7 @@ export default function OrdersPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/orders", {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders");
-      }
-
-      const data: { orders: Order[] } = await response.json();
+      const data: { orders: Order[] } = await apiRequest("/api/orders");
       setOrders(data.orders);
     } catch (err) {
       console.error("Error fetching orders:", err);
@@ -88,11 +81,8 @@ export default function OrdersPage() {
   const filteredOrders = orders;
 
   // Helper function to safely format currency
-  const formatCurrency = (value: any): string => {
-    if (value === null || value === undefined) return "N/A";
-    const num = typeof value === "string" ? parseFloat(value) : Number(value);
-    if (isNaN(num)) return "N/A";
-    return `£${num.toFixed(2)}`;
+  const formatCurrency = (num: number) => {
+    return `$${num.toFixed(2)}`;
   };
 
   // Helper to get carrier from ItemDescription
@@ -174,7 +164,7 @@ export default function OrdersPage() {
                     className="mt-6 bg-blue-600 hover:bg-blue-700"
                     onClick={() => router.push("/")}
                   >
-                    Start Shopping
+                    Place your first order
                   </Button>
                 </div>
               ) : (

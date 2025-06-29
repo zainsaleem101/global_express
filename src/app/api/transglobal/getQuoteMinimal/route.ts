@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { convertToUSD } from "../../../../../src/lib/utils/rate-conversion";
 
 interface PackageData {
   weight: string;
@@ -13,7 +14,10 @@ export async function POST(request: Request) {
 
     // Log the received data
     if (process.env.NODE_ENV === "development") {
-      console.log("Received shipping form data:", JSON.stringify(data, null, 2));
+      console.log(
+        "Received shipping form data:",
+        JSON.stringify(data, null, 2)
+      );
     }
 
     // Validate quantity and packages
@@ -55,20 +59,20 @@ export async function POST(request: Request) {
       },
       Shipment: {
         Consignment: {
-          ItemType: data.itemType, // Use the item type from the request
+          ItemType: data.itemType,
           Packages: packages,
         },
         CollectionAddress: {
-          City: "", // Per Python example
-          Postcode: data.fromPostcode || "", // Allow empty postal codes
+          City: "",
+          Postcode: data.fromPostcode || "",
           Country: {
             CountryID: data.fromCountry.CountryID,
             CountryCode: data.fromCountry.CountryCode,
           },
         },
         DeliveryAddress: {
-          City: "", // Per Python example
-          Postcode: data.toPostcode || "", // Allow empty postal codes
+          City: "",
+          Postcode: data.toPostcode || "",
           Country: {
             CountryID: data.toCountry.CountryID,
             CountryCode: data.toCountry.CountryCode,
@@ -91,15 +95,19 @@ export async function POST(request: Request) {
 
     const apiData = await apiResponse.json();
 
-    // Pass through the API response even if it has a FAIL status
-    // This allows the frontend to handle specific error messages
+    // Convert prices to USD
+    // console.log(JSON.stringify(apiData));
+    const convertedData = await convertToUSD(apiData);
+    // const convertedData = apiData;
+
+    // Pass through the converted response
     return NextResponse.json({
       success: apiData.Status === "SUCCESS",
       message:
         apiData.Status === "SUCCESS"
-          ? "Shipping quote retrieved successfully"
+          ? "Shipping quote retrieved successfully (prices in USD)"
           : "Failed to retrieve quote",
-      data: apiData,
+      data: convertedData,
     });
   } catch (error) {
     console.error("Error processing shipping form:", error);

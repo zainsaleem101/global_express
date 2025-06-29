@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import User from "../../../../../src/lib/models/User";
-import { verifyToken } from "../../../../../src/lib/auth/jwt";
+import { verifyTokenWithDetails } from "../../../../../src/lib/auth/jwt";
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,18 +14,35 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Verify token
-    const userData = verifyToken(token);
+    // Verify token with detailed result
+    const tokenResult = verifyTokenWithDetails(token);
 
-    if (!userData) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
+    if (!tokenResult.valid) {
+      // Clear the invalid token cookie
+      const response = NextResponse.json(
+        {
+          message: tokenResult.expired ? "Token expired" : "Invalid token",
+        },
         { status: 401 }
       );
+
+      response.cookies.set({
+        name: "auth_token",
+        value: "",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        expires: new Date(0), // Set expiry to epoch time to delete the cookie
+        sameSite: "strict",
+        path: "/",
+      });
+
+      return response;
     }
 
     // Get user details from database (excluding password)
-    const userDetails = await User.findById(userData.id).select("-password");
+    const userDetails = await User.findById(tokenResult.user!.id).select(
+      "-password"
+    );
 
     if (!userDetails) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });

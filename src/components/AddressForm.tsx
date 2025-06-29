@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -10,20 +9,13 @@ import {
 import { Button } from "../../src/components/ui/button";
 import type { ICountry } from "../../src/lib/models/Country";
 import type { Address } from "../../src/lib/types/shipping";
+import { fetchCountries, useCountries } from "../../src/lib/utils/api";
 
 interface AddressFormProps {
   onSubmit: (collection: Address, delivery: Address) => void;
   initialCollection?: Address | null;
   initialDelivery?: Address | null;
 }
-
-const fetchCountries = async (): Promise<ICountry[]> => {
-  const response = await fetch("/api/countries");
-  if (!response.ok) {
-    throw new Error("Failed to fetch countries");
-  }
-  return response.json();
-};
 
 export default function AddressForm({
   onSubmit,
@@ -38,17 +30,8 @@ export default function AddressForm({
   );
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const {
-    data: countries = [],
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["countries"],
-    queryFn: fetchCountries,
-    staleTime: Number.POSITIVE_INFINITY,
-    gcTime: Number.POSITIVE_INFINITY,
-    retry: 3,
-  });
+  // Use the custom hook to fetch and cache countries
+  const { data: countries = [], isError, error } = useCountries();
 
   // Update form when initial values change
   useEffect(() => {

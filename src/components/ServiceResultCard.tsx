@@ -16,7 +16,10 @@ import { Button } from "../../src/components/ui/button";
 import { Separator } from "../../src/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "../../src/lib/store/useAuthStore";
-import { useShippingStore } from "../../src/lib/store/useShippingStore";
+import {
+  useShippingStore,
+  formatWeight,
+} from "../../src/lib/store/useShippingStore";
 import type { ServiceResult } from "../../src/lib/types/shipping";
 
 interface ServiceResultCardProps {
@@ -27,7 +30,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const { setSelectedService } = useShippingStore();
+  const { setSelectedService, measurementUnit } = useShippingStore();
 
   const handleServiceSelection = () => {
     if (!isAuthenticated) {
@@ -76,7 +79,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
                 <div>
                   <div className="text-xs text-gray-500">Chargeable Weight</div>
                   <div className="font-semibold">
-                    {result.ChargeableWeight} kg
+                    {formatWeight(result.ChargeableWeight, measurementUnit)}
                   </div>
                 </div>
               </div>
@@ -129,7 +132,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 flex flex-col justify-center items-center md:min-w-[220px] border-t md:border-t-0 md:border-l border-blue-100">
             <div className="text-center">
               <p className="text-2xl sm:text-3xl font-bold text-blue-700">
-                £{result.TotalCost.TotalCostGrossWithCollection.toFixed(2)}
+                ${result.TotalCost.TotalCostGrossWithCollection.toFixed(2)}
               </p>
               <p className="text-sm text-blue-600 font-medium">
                 with collection
@@ -138,7 +141,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
               <Separator className="my-3 sm:my-4 bg-blue-200/50" />
 
               <p className="text-base sm:text-lg font-medium text-gray-700">
-                £{result.TotalCost.TotalCostGrossWithoutCollection.toFixed(2)}
+                ${result.TotalCost.TotalCostGrossWithoutCollection.toFixed(2)}
               </p>
               <p className="text-xs text-gray-500">without collection</p>
             </div>
@@ -176,7 +179,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-700 flex items-center gap-2">
                   <span className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs">
-                    £
+                    $
                   </span>
                   Price Breakdown
                 </h4>
@@ -191,7 +194,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
                           {item.Description}
                         </span>
                         <span className="font-medium text-gray-900">
-                          £{item.Cost.toFixed(2)}
+                          ${item.Cost.toFixed(2)}
                         </span>
                       </li>
                     ))}
@@ -204,7 +207,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-700 flex items-center gap-2">
                   <span className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs">
-                    +
+                    $
                   </span>
                   Optional Extras
                 </h4>
@@ -219,7 +222,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
                           {extra.Description}
                         </span>
                         <span className="font-medium text-gray-900">
-                          £{extra.Cost.toFixed(2)}
+                          ${extra.Cost.toFixed(2)}
                         </span>
                       </li>
                     ))}
@@ -251,7 +254,7 @@ export default function ServiceResultCard({ result }: ServiceResultCardProps) {
                         variant="outline"
                         className="bg-blue-50 text-blue-700"
                       >
-                        £{option.CollectionCharge.toFixed(2)}
+                        ${option.CollectionCharge.toFixed(2)}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 mb-3">

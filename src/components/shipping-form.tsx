@@ -4,7 +4,6 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { ArrowRight, AlertCircle, Info } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "../../src/components/ui/button";
 import { Input } from "../../src/components/ui/input";
@@ -30,9 +29,11 @@ import type { ICountry } from "../../src/lib/models/Country"; // Import the inte
 import {
   saveFormDataToSession,
   loadFormDataFromSession,
+  useShippingStore,
 } from "../../src/lib/store/useShippingStore";
 import type { PackageDimensions } from "../../src/lib/types/order";
 import type { ServiceResult } from "../../src/lib/types/shipping";
+import { fetchCountries, useCountries } from "../../src/lib/utils/api";
 
 // Export the FormData type for use in the store
 export interface FormData {
@@ -106,16 +107,9 @@ const convertToMetric = (
   };
 };
 
-// Function to fetch countries
-const fetchCountries = async (): Promise<ICountry[]> => {
-  const response = await fetch("/api/countries");
-  if (!response.ok) {
-    throw new Error("Failed to fetch countries");
-  }
-  return response.json();
-};
-
 export default function ShippingForm() {
+  const { setMeasurementUnit } = useShippingStore();
+
   const [formData, setFormData] = useState<FormData>(() => {
     // Try to load saved form data from session storage
     if (typeof window !== "undefined") {
@@ -144,6 +138,11 @@ export default function ShippingForm() {
     saveFormDataToSession(formData);
   }, [formData]);
 
+  // Update global store when measurement unit changes
+  useEffect(() => {
+    setMeasurementUnit(formData.measurementUnit as "kg/cm" | "lb/inches");
+  }, [formData.measurementUnit, setMeasurementUnit]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [apiNotifications, setApiNotifications] = useState<ApiNotification[]>(
@@ -153,18 +152,8 @@ export default function ShippingForm() {
   const [results, setResults] = useState<ServiceResult[] | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Use TanStack Query to fetch and cache countries
-  const {
-    data: countries = [],
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["countries"],
-    queryFn: fetchCountries,
-    staleTime: Number.POSITIVE_INFINITY, // Never consider the data stale
-    gcTime: Number.POSITIVE_INFINITY, // Never garbage collect the data
-    retry: 3, // Retry failed requests 3 times
-  });
+  // Use the custom hook to fetch and cache countries
+  const { data: countries = [], isError, error } = useCountries();
 
   useEffect(() => {
     if (results) {
@@ -334,7 +323,7 @@ export default function ShippingForm() {
         },
       };
 
-      const response = await fetch("/api/getQuoteMinimal", {
+      const response = await fetch("/api/transglobal/getQuoteMinimal", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

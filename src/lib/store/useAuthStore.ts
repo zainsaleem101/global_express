@@ -18,6 +18,7 @@ interface AuthState {
   setAuthenticated: (isAuthenticated: boolean) => void;
   login: (user: User, token: string) => void;
   logout: () => void;
+  forceLogout: () => void;
   checkAuth: () => Promise<void>;
   resetAuth: () => void;
 }
@@ -61,18 +62,27 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           loading: false,
           authChecked: true,
+          token: undefined,
+        });
+      },
+
+      forceLogout: () => {
+        set({
+          user: null,
+          isAuthenticated: false,
+          loading: false,
+          authChecked: true,
+          token: undefined,
         });
       },
 
       checkAuth: async () => {
         const state = get();
 
-        // If we're already loading, don't start another request
         if (state.loading) {
           return;
         }
 
-        // If auth has been checked and we have a user, don't check again
         if (state.authChecked && state.isAuthenticated && state.user) {
           return;
         }
@@ -83,6 +93,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await fetch("/api/auth/me", {
             credentials: "include",
           });
+
           if (response.ok) {
             const data = await response.json();
             set({
@@ -91,6 +102,25 @@ export const useAuthStore = create<AuthState>()(
               loading: false,
               authChecked: true,
             });
+          } else if (response.status === 401) {
+            set({
+              user: null,
+              isAuthenticated: false,
+              loading: false,
+              authChecked: true,
+              token: undefined,
+            });
+
+            if (
+              typeof window !== "undefined" &&
+              window.location.pathname !== "/login"
+            ) {
+              const currentPath = window.location.pathname;
+              const loginUrl = `/login?callbackUrl=${encodeURIComponent(
+                currentPath
+              )}`;
+              window.location.href = loginUrl;
+            }
           } else {
             set({
               user: null,
@@ -123,7 +153,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: "auth-storage", // unique name for localStorage key
+      name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
@@ -131,7 +161,6 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
       }),
       onRehydrateStorage: () => (state) => {
-        // When rehydrating from localStorage, set loading to false
         if (state) {
           state.loading = false;
         }

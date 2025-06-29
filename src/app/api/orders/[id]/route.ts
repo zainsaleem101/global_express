@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "../../../../../src/lib/mongodb";
 import Order from "../../../../../src/lib/models/Order";
-import { verifyToken } from "../../../../../src/lib/auth/jwt";
+import { verifyTokenWithDetails } from "../../../../../src/lib/auth/jwt";
 import type { Order as OrderType } from "../../../../../src/lib/types/order.d";
 
 export async function GET(
@@ -22,13 +22,28 @@ export async function GET(
       );
     }
 
-    // Verify token
-    const userData = verifyToken(token);
-    if (!userData) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
+    // Verify token with detailed result
+    const tokenResult = verifyTokenWithDetails(token);
+    if (!tokenResult.valid) {
+      // Clear the invalid token cookie
+      const response = NextResponse.json(
+        {
+          message: tokenResult.expired ? "Token expired" : "Invalid token",
+        },
         { status: 401 }
       );
+
+      response.cookies.set({
+        name: "auth_token",
+        value: "",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        expires: new Date(0), // Set expiry to epoch time to delete the cookie
+        sameSite: "strict",
+        path: "/",
+      });
+
+      return response;
     }
 
     // Connect to database
@@ -37,7 +52,7 @@ export async function GET(
     // Find the order by ID and ensure it belongs to the authenticated user
     const order = await Order.findOne({
       _id: id,
-      userId: userData.id,
+      userId: tokenResult.user!.id,
     });
 
     if (!order) {

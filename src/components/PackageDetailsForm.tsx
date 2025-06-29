@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -11,6 +10,7 @@ import { Button } from "../../src/components/ui/button";
 import { Badge } from "../../src/components/ui/badge";
 import type { ICountry } from "../../src/lib/models/Country";
 import type { PackageItem } from "../../src/lib/types/shipping";
+import { fetchCountries, useCountries } from "../../src/lib/utils/api";
 
 interface PackageDetailsFormProps {
   onSubmit: (
@@ -25,14 +25,6 @@ interface PackageDetailsFormProps {
   initialCollectionDate?: string;
   initialReadyFrom?: string;
 }
-
-const fetchCountries = async (): Promise<ICountry[]> => {
-  const response = await fetch("/api/countries");
-  if (!response.ok) {
-    throw new Error("Failed to fetch countries");
-  }
-  return response.json();
-};
 
 export default function PackageDetailsForm({
   onSubmit,
@@ -58,17 +50,8 @@ export default function PackageDetailsForm({
   const [readyFrom, setReadyFrom] = useState<string>(initialReadyFrom);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const {
-    data: countries = [],
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["countries"],
-    queryFn: fetchCountries,
-    staleTime: Number.POSITIVE_INFINITY,
-    gcTime: Number.POSITIVE_INFINITY,
-    retry: 3,
-  });
+  // Use the custom hook to fetch and cache countries
+  const { data: countries = [], isError, error } = useCountries();
 
   // Update form when initial values change
   useEffect(() => {
@@ -366,7 +349,7 @@ export default function PackageDetailsForm({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Value per Item (£) *
+                Value per Item ($) *
               </label>
               <input
                 type="number"
@@ -408,7 +391,7 @@ export default function PackageDetailsForm({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total Value: £
+                Total Value: $
                 {(
                   (newItem.quantity || 0) * (newItem.valuePerItem || 0)
                 ).toFixed(2)}
@@ -506,8 +489,8 @@ export default function PackageDetailsForm({
                           {item.quantity}
                         </div>
                         <div>
-                          <span className="font-medium">Value:</span> £
-                          {(item.quantity * item.valuePerItem).toFixed(2)}
+                          <span className="font-medium">Value:</span> $
+                          {(item.valuePerItem * item.quantity).toFixed(2)}
                         </div>
                         <div>
                           <span className="font-medium">Weight:</span>{" "}

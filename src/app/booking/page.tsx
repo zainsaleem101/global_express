@@ -20,6 +20,10 @@ import type {
   PackageItem,
   ServiceQuote,
 } from "../../lib/types/shipping";
+import {
+  useShippingStore,
+  formatWeight,
+} from "../../lib/store/useShippingStore";
 
 interface BookingData {
   collectionAddress: Address | null;
@@ -50,6 +54,7 @@ export default function BookingPage() {
 
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuthStore();
+  const { measurementUnit } = useShippingStore();
 
   // Check authentication on component mount
   useEffect(() => {
@@ -153,7 +158,7 @@ export default function BookingPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/getQuote", {
+      const response = await fetch("/api/transglobal/getQuote", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -250,7 +255,7 @@ export default function BookingPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/book-shipment", {
+      const response = await fetch("/api/transglobal/book-shipment", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -535,7 +540,7 @@ export default function BookingPage() {
                                 </div>
                                 <div className="text-right">
                                   <p className="text-3xl font-bold text-sky-600">
-                                    £
+                                    $
                                     {quote.TotalCost.TotalCostGrossWithCollection.toFixed(
                                       2
                                     )}
@@ -560,7 +565,10 @@ export default function BookingPage() {
                                     Weight
                                   </p>
                                   <p className="font-semibold text-gray-900">
-                                    {quote.ChargeableWeight} kg
+                                    {formatWeight(
+                                      quote.ChargeableWeight,
+                                      measurementUnit
+                                    )}
                                   </p>
                                 </div>
                                 <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -598,8 +606,8 @@ export default function BookingPage() {
                                           <span className="text-gray-600">
                                             {price.Description}
                                           </span>
-                                          <span className="font-medium">
-                                            £{price.Cost.toFixed(2)}
+                                          <span className="font-medium text-gray-900">
+                                            ${price.Cost.toFixed(2)}
                                           </span>
                                         </div>
                                       )
@@ -622,8 +630,8 @@ export default function BookingPage() {
                                             <span className="text-gray-600">
                                               {extra.Description}
                                             </span>
-                                            <span className="font-medium">
-                                              £{extra.Cost.toFixed(2)}
+                                            <span className="font-medium text-gray-900">
+                                              ${extra.Cost.toFixed(2)}
                                             </span>
                                           </div>
                                         )
@@ -738,7 +746,7 @@ export default function BookingPage() {
                         <div className="flex justify-between">
                           <span className="text-gray-600">Total Cost:</span>
                           <span className="font-bold text-sky-600">
-                            £
+                            $
                             {selectedService?.TotalCost.TotalCostGrossWithCollection.toFixed(
                               2
                             )}

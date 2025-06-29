@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../src/lib/mongodb";
-import Order from "../../../../src/lib/models/Order";
+import { connectToDatabase } from "../../../../../src/lib/mongodb";
+import Order from "../../../../../src/lib/models/Order";
 import xml2js from "xml2js";
 import { cookies } from "next/headers";
-import { verifyToken } from "../../../../src/lib/auth/jwt";
+import { verifyTokenWithDetails } from "../../../../../src/lib/auth/jwt";
 
 // Helper function to escape XML special characters
 function escapeXml(str: string): string {
@@ -23,9 +23,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const userData = verifyToken(token);
-    if (!userData) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const tokenResult = verifyTokenWithDetails(token);
+    if (!tokenResult.valid) {
+      // Clear the invalid token cookie
+      const response = NextResponse.json(
+        {
+          message: tokenResult.expired ? "Token expired" : "Invalid token",
+        },
+        { status: 401 }
+      );
+
+      response.cookies.set({
+        name: "auth_token",
+        value: "",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        expires: new Date(0), // Set expiry to epoch time to delete the cookie
+        sameSite: "strict",
+        path: "/",
+      });
+
+      return response;
     }
 
     const { quoteId, selectedServiceId, collectionDate, readyFrom } =
@@ -42,8 +60,8 @@ export async function POST(request: NextRequest) {
     // Construct the BookShipment request payload using QuoteSelection
     const bookShipmentRequest = {
       Credentials: {
-        APIKey: process.env.TRANSGLOBAL_API_KEY || "5heQZ7Xrz3",
-        Password: process.env.TRANSGLOBAL_API_PASSWORD || "bzHiFd?4Z2",
+        APIKey: process.env.TRANSGLOBAL_API_KEY_TEST || "5heQZ7Xrz3",
+        Password: process.env.TRANSGLOBAL_API_PASSWORD_TEST || "bzHiFd?4Z2",
       },
       QuoteSelection: {
         QuoteID: quoteId,
@@ -162,7 +180,7 @@ export async function POST(request: NextRequest) {
 
     // Save the order to the database
     const order = new Order({
-      userId: userData.id,
+      userId: tokenResult.user!.id,
       shipmentDetails: bookShipmentResponse,
     });
     await order.save();

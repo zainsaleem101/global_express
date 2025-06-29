@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
     // Construct the GetQuote request payload
     const getQuoteRequest = {
       Credentials: {
-        APIKey: process.env.TRANSGLOBAL_API_KEY_TEST || "5heQZ7Xrz3",
-        Password: process.env.TRANSGLOBAL_API_PASSWORD_TEST || "bzHiFd?4Z2",
+        APIKey: process.env.TRANSGLOBAL_API_KEY || "5heQZ7Xrz3",
+        Password: process.env.TRANSGLOBAL_API_PASSWORD || "bzHiFd?4Z2",
       },
       Shipment: {
         Consignment: {
@@ -224,26 +224,32 @@ export async function POST(request: NextRequest) {
       </GetQuoteRequest>
     `.trim();
 
+    // Determine the endpoint URL based on credentials
+    const isTestCredentials =
+      getQuoteRequest.Credentials.APIKey ===
+        (process.env.TRANSGLOBAL_API_KEY_TEST || "5heQZ7Xrz3") &&
+      getQuoteRequest.Credentials.Password ===
+        (process.env.TRANSGLOBAL_API_PASSWORD_TEST || "bzHiFd?4Z2");
+
+    const endpointUrl = isTestCredentials
+      ? "https://staging2.services3.transglobalexpress.co.uk/Quote/V2/GetQuote"
+      : "https://services3.transglobalexpress.co.uk/Quote/V2/GetQuote";
+
     // Log the XML request body for debugging
     if (process.env.NODE_ENV === "development") {
       console.log("GetQuote XML Request:", xmlBody);
+      console.log("Using endpoint:", endpointUrl);
     }
 
     // Make the API request to Transglobal Express GetQuote endpoint
-    // const apiResponse = await fetch(
-    //   "https://services3.transglobalexpress.co.uk/Quote/V2/GetQuote",
-
-    const apiResponse = await fetch(
-      "https://staging2.services3.transglobalexpress.co.uk/Quote/V2/GetQuote",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/xml",
-          Accept: "application/xml",
-        },
-        body: xmlBody,
-      }
-    );
+    const apiResponse = await fetch(endpointUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/xml",
+        Accept: "application/xml",
+      },
+      body: xmlBody,
+    });
 
     const responseText = await apiResponse.text();
 

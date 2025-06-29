@@ -1,4 +1,5 @@
 import type { Address, PackageItem } from "../../src/lib/types/shipping";
+import { useShippingStore, formatWeight } from "../lib/store/useShippingStore";
 
 interface SummaryPageProps {
   collectionAddress: Address;
@@ -23,6 +24,8 @@ export default function SummaryPage({
   onBack,
   onProceed,
 }: SummaryPageProps) {
+  const { measurementUnit } = useShippingStore();
+
   const handleBookShipment = async () => {
     const payload = {
       collectionAddress,
@@ -35,7 +38,7 @@ export default function SummaryPage({
     };
 
     try {
-      const response = await fetch("/api/book-shipment", {
+      const response = await fetch("/api/transglobal/book-shipment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -145,7 +148,7 @@ export default function SummaryPage({
               <th className="p-2 text-left">Commodity Code</th>
               <th className="p-2 text-left">Country of Origin</th>
               <th className="p-2 text-left">Quantity</th>
-              <th className="p-2 text-left">Value (£)</th>
+              <th className="p-2 text-left">Value ($)</th>
               <th className="p-2 text-left">Weight (kg)</th>
               <th className="p-2 text-left">Length (cm)</th>
               <th className="p-2 text-left">Width (cm)</th>
@@ -169,7 +172,7 @@ export default function SummaryPage({
           </tbody>
         </table>
         <p>
-          <strong>Total Goods Value:</strong> £
+          <strong>Total Goods Value:</strong> $
           {packageItems
             .reduce((sum, item) => sum + item.valuePerItem * item.quantity, 0)
             .toFixed(2)}
@@ -194,20 +197,20 @@ export default function SummaryPage({
         <p>
           <strong>Chargeable Weight:</strong>{" "}
           {selectedService.ChargeableWeight
-            ? `${selectedService.ChargeableWeight}kg`
+            ? formatWeight(selectedService.ChargeableWeight, measurementUnit)
             : "N/A"}
         </p>
         <p>
-          <strong>Price:</strong> £{price.toFixed(2)}
+          <strong>Price:</strong> ${price.toFixed(2)}
         </p>
         <p>
-          <strong>Surcharge:</strong> £{surcharge.toFixed(2)}
+          <strong>Surcharge:</strong> ${surcharge.toFixed(2)}
         </p>
         <p>
-          <strong>VAT:</strong> £{vat.toFixed(2)}
+          <strong>VAT:</strong> ${vat.toFixed(2)}
         </p>
         <p>
-          <strong>Total:</strong> £
+          <strong>Total:</strong> $
           {(
             selectedService.TotalCost?.TotalCostGrossWithCollection || 0
           ).toFixed(2)}

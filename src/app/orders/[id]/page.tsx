@@ -17,6 +17,7 @@ import { AlertCircle, ArrowLeft, Download, FileText } from "lucide-react";
 import { format } from "date-fns";
 import type { Order } from "../../../../src/lib/types/order";
 import { pdfjs } from "react-pdf";
+import { apiRequest } from "../../../../src/lib/utils/api";
 
 // Initialize pdf.js worker with a compatible modern version
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.mjs`;
@@ -39,18 +40,7 @@ export default function OrderDetailsPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/orders/${id}`, {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Order not found");
-        }
-        throw new Error("Failed to fetch order details");
-      }
-
-      const data = await response.json();
+      const data = await apiRequest(`/api/orders/${id}`);
       setOrder(data.order);
     } catch (err) {
       console.error("Error fetching order details:", err);
@@ -246,11 +236,8 @@ export default function OrderDetailsPage() {
     fetchOrderDetails();
   }, [isAuthenticated, authLoading, fetchOrderDetails, router]);
 
-  const formatCurrency = (value: any): string => {
-    if (value === null || value === undefined) return "N/A";
-    const num = typeof value === "string" ? parseFloat(value) : Number(value);
-    if (isNaN(num)) return "N/A";
-    return `£${num.toFixed(2)}`;
+  const formatCurrency = (num: number) => {
+    return `$${num.toFixed(2)}`;
   };
 
   if (authLoading) {

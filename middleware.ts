@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyToken } from "./src/lib/auth/jwt";
+import { verifyTokenWithDetails } from "./src/lib/auth/jwt";
 
 // List of paths that require authentication
 const protectedPaths = [
@@ -15,7 +15,7 @@ const authOnlyPaths = ["/login", "/register"];
 const protectedApiPaths = [
   "/api/auth/me",
   "/api/orders", // Protected orders API
-  "/api/book-shipment", // Protect the shipment booking API
+  "/api/transglobal/book-shipment", // Protect the shipment booking API
 ];
 
 export function middleware(request: NextRequest) {
@@ -49,7 +49,24 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
 
   // Verify the token if it exists
-  const isAuthenticated = token ? !!verifyToken(token) : false;
+  let isAuthenticated = false;
+  if (token) {
+    const tokenResult = verifyTokenWithDetails(token);
+    isAuthenticated = tokenResult.valid;
+
+    // If token is invalid/expired, clear the cookie
+    if (!isAuthenticated) {
+      response.cookies.set({
+        name: "auth_token",
+        value: "",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        expires: new Date(0), // Set expiry to epoch time to delete the cookie
+        sameSite: "strict",
+        path: "/",
+      });
+    }
+  }
 
   // Handle API authentication
   if (isApiRequest) {
@@ -117,7 +134,7 @@ export const config = {
     // Protected API routes
     "/api/auth/me",
     "/api/orders/:path*",
-    "/api/book-shipment",
+    "/api/transglobal/book-shipment",
     // Apply security headers to all routes
     "/(.*)",
   ],
