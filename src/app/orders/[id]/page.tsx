@@ -236,8 +236,10 @@ export default function OrderDetailsPage() {
     fetchOrderDetails();
   }, [isAuthenticated, authLoading, fetchOrderDetails, router]);
 
-  const formatCurrency = (num: number) => {
-    return `$${num.toFixed(2)}`;
+  const formatCurrency = (num: any) => {
+    const n = typeof num === "number" ? num : Number(num);
+    if (isNaN(n)) return "$0.00";
+    return `$${n.toFixed(2)}`;
   };
 
   if (authLoading) {
