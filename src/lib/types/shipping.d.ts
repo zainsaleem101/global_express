@@ -96,3 +96,28 @@ export interface ServiceResult {
   SameDayCollectionCutOffTime?: string;
   ServiceType?: string;
 }
+
+// Add this interface for the minimal form data
+export interface MinimalFormData {
+  fromCountry:
+    | {
+        CountryID: number;
+        CountryCode: string;
+        Title: string;
+      }
+    | string;
+  fromPostcode: string;
+  toCountry:
+    | {
+        CountryID: number;
+        CountryCode: string;
+        Title: string;
+      }
+    | string;
+  toPostcode: string;
+  quantity: string;
+  itemType: string;
+  packagingType: string;
+  measurementUnit: string;
+  packages: PackageDimensions[];
+}

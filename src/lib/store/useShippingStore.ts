@@ -1,15 +1,15 @@
 import { create } from "zustand";
 import type { ServiceResult } from "../../lib/types/shipping";
-import type { FormData } from "../../components/minimal-shipping-form";
+import type { MinimalFormData } from "../../lib/types/shipping";
 
 interface ShippingState {
   selectedService: ServiceResult | null;
   measurementUnit: "kg/cm" | "lb/inches";
-  minimalFormData: FormData | null;
+  minimalFormData: MinimalFormData | null;
   setSelectedService: (service: ServiceResult) => void;
   clearSelectedService: () => void;
   setMeasurementUnit: (unit: "kg/cm" | "lb/inches") => void;
-  setMinimalFormData: (data: FormData) => void;
+  setMinimalFormData: (data: MinimalFormData) => void;
   clearMinimalFormData: () => void;
 }
 
@@ -25,11 +25,11 @@ export const useShippingStore = create<ShippingState>((set) => ({
 }));
 
 // Helper functions for SessionStorage
-export const saveFormDataToSession = (formData: FormData) => {
+export const saveFormDataToSession = (formData: MinimalFormData) => {
   sessionStorage.setItem("shippingFormData", JSON.stringify(formData));
 };
 
-export const loadFormDataFromSession = (): FormData | null => {
+export const loadFormDataFromSession = (): MinimalFormData | null => {
   const data = sessionStorage.getItem("shippingFormData");
   return data ? JSON.parse(data) : null;
 };

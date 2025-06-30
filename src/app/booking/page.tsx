@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -58,23 +58,49 @@ export default function BookingPage() {
   const { measurementUnit, minimalFormData } = useShippingStore();
   const { data: countries = [] } = useCountries();
 
-  // Helper function to get CountryCode from CountryID
-  const getCountryCodeFromId = (countryId: string) => {
-    if (!countryId) return "";
-    console.log("Looking for CountryID:", countryId, "Type:", typeof countryId);
-    console.log(
-      "Available countries:",
-      countries.map((c) => ({
-        id: c.CountryID,
-        code: c.CountryCode,
-        title: c.Title,
-      }))
-    );
+  // Helper function to get CountryCode from CountryID - memoized with useCallback
+  const getCountryCodeFromId = useCallback(
+    (countryId: string) => {
+      if (!countryId) return "";
+      console.log(
+        "Looking for CountryID:",
+        countryId,
+        "Type:",
+        typeof countryId
+      );
+      console.log(
+        "Available countries:",
+        countries.map((c) => ({
+          id: c.CountryID,
+          code: c.CountryCode,
+          title: c.Title,
+        }))
+      );
 
-    const country = countries.find((c) => c.CountryID.toString() === countryId);
-    console.log("Found country:", country);
-    return country ? country.CountryCode : "";
-  };
+      const country = countries.find(
+        (c) => c.CountryID.toString() === countryId
+      );
+      console.log("Found country:", country);
+      return country ? country.CountryCode : "";
+    },
+    [countries]
+  );
+
+  // Helper function to extract country code from minimal form data
+  const getCountryCodeFromMinimalData = useCallback(
+    (
+      countryData:
+        | string
+        | { CountryID: number; CountryCode: string; Title: string }
+    ) => {
+      if (typeof countryData === "string") {
+        return getCountryCodeFromId(countryData);
+      } else {
+        return countryData.CountryCode;
+      }
+    },
+    [getCountryCodeFromId]
+  );
 
   // Check authentication on component mount
   useEffect(() => {
@@ -107,8 +133,16 @@ export default function BookingPage() {
 
     // Pre-fill addresses with minimal form data if available
     if (minimalFormData) {
-      const fromCountryCode = getCountryCodeFromId(minimalFormData.fromCountry);
-      const toCountryCode = getCountryCodeFromId(minimalFormData.toCountry);
+      console.log("Processing minimal form data...");
+      console.log("From country data:", minimalFormData.fromCountry);
+      console.log("To country data:", minimalFormData.toCountry);
+
+      const fromCountryCode = getCountryCodeFromMinimalData(
+        minimalFormData.fromCountry
+      );
+      const toCountryCode = getCountryCodeFromMinimalData(
+        minimalFormData.toCountry
+      );
 
       console.log(
         "From Country ID:",
@@ -195,7 +229,7 @@ export default function BookingPage() {
     if (parsedData?.readyFrom) {
       setReadyFrom(parsedData.readyFrom);
     }
-  }, [minimalFormData, countries]);
+  }, [minimalFormData, countries, getCountryCodeFromMinimalData]);
 
   // Show loading state while checking auth
   if (authLoading) {

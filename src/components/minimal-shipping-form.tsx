@@ -26,6 +26,7 @@ import {
 } from "../lib/store/useShippingStore";
 import type { PackageDimensions } from "../lib/types/order";
 import type { ServiceResult } from "../lib/types/shipping";
+import type { MinimalFormData } from "../lib/types/shipping";
 import { fetchCountries, useCountries } from "../lib/utils/api";
 
 // Export the FormData type for use in the store
@@ -108,7 +109,24 @@ export default function ShippingForm() {
     if (typeof window !== "undefined") {
       const savedData = loadFormDataFromSession();
       if (savedData) {
-        return savedData;
+        // Convert the saved data back to the form format
+        return {
+          fromCountry:
+            typeof savedData.fromCountry === "string"
+              ? savedData.fromCountry
+              : savedData.fromCountry.CountryID.toString(),
+          fromPostcode: savedData.fromPostcode,
+          toCountry:
+            typeof savedData.toCountry === "string"
+              ? savedData.toCountry
+              : savedData.toCountry.CountryID.toString(),
+          toPostcode: savedData.toPostcode,
+          quantity: savedData.quantity,
+          itemType: savedData.itemType,
+          packagingType: savedData.packagingType,
+          measurementUnit: savedData.measurementUnit,
+          packages: savedData.packages,
+        };
       }
     }
 
@@ -128,7 +146,19 @@ export default function ShippingForm() {
 
   // Save form data to session storage whenever it changes
   useEffect(() => {
-    saveFormDataToSession(formData);
+    // Convert form data to MinimalFormData format before saving
+    const minimalFormData: MinimalFormData = {
+      fromCountry: formData.fromCountry,
+      fromPostcode: formData.fromPostcode,
+      toCountry: formData.toCountry,
+      toPostcode: formData.toPostcode,
+      quantity: formData.quantity,
+      itemType: formData.itemType,
+      packagingType: formData.packagingType,
+      measurementUnit: formData.measurementUnit,
+      packages: formData.packages,
+    };
+    saveFormDataToSession(minimalFormData);
   }, [formData]);
 
   // Update global store when measurement unit changes
