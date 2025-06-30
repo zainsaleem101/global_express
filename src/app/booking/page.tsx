@@ -157,7 +157,7 @@ export default function BookingPage() {
         toCountryCode
       );
 
-      const preFilledCollection: Address = {
+      const emptyAddress: Address = {
         forename: "",
         surname: "",
         email: "",
@@ -185,17 +185,17 @@ export default function BookingPage() {
         country: toCountryCode,
       };
 
-      console.log("Pre-filled collection address:", preFilledCollection);
+      console.log("Pre-filled collection address:", emptyAddress);
       console.log("Pre-filled delivery address:", preFilledDelivery);
 
       // Use saved data if available, otherwise use pre-filled data
       if (parsedData?.collectionAddress) {
         setCollectionAddress({
-          ...preFilledCollection,
+          ...emptyAddress,
           ...parsedData.collectionAddress,
         });
       } else {
-        setCollectionAddress(preFilledCollection);
+        setCollectionAddress(emptyAddress);
       }
 
       if (parsedData?.deliveryAddress) {
@@ -459,6 +459,10 @@ export default function BookingPage() {
     { number: 4, title: "Confirmation", description: "Booking Complete" },
   ];
 
+  // Ensure fromCountryCode and toCountryCode are defined in the render scope
+  const fromCountryCode = getCountryCodeFromMinimalData(minimalFormData?.fromCountry);
+  const toCountryCode = getCountryCodeFromMinimalData(minimalFormData?.toCountry);
+
   return (
     <SiteLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
@@ -603,8 +607,32 @@ export default function BookingPage() {
                 <CardContent>
                   <AddressForm
                     onSubmit={handleAddressSubmit}
-                    initialCollection={collectionAddress}
-                    initialDelivery={deliveryAddress}
+                    initialCollection={{
+                      forename: "",
+                      surname: "",
+                      email: "",
+                      phone: "",
+                      companyName: "",
+                      addressLine1: "",
+                      addressLine2: "",
+                      city: "",
+                      countryState: "",
+                      postcode: minimalFormData?.fromPostcode || "",
+                      country: fromCountryCode,
+                    }}
+                    initialDelivery={{
+                      forename: "",
+                      surname: "",
+                      email: "",
+                      phone: "",
+                      companyName: "",
+                      addressLine1: "",
+                      addressLine2: "",
+                      city: "",
+                      countryState: "",
+                      postcode: minimalFormData?.toPostcode || "",
+                      country: toCountryCode,
+                    }}
                   />
                 </CardContent>
               </Card>

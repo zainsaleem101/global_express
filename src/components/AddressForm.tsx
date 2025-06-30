@@ -71,10 +71,6 @@ export default function AddressForm({
     return country ? country.CountryCode : "";
   };
 
-  // Use props directly for display values, with local state as fallback
-  const displayCollection = initialCollection || collection;
-  const displayDelivery = initialDelivery || delivery;
-
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
@@ -160,7 +156,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayCollection.forename || ""}
+              value={collection.forename || ""}
               onChange={(e) =>
                 setCollection({ ...collection, forename: e.target.value })
               }
@@ -176,7 +172,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayCollection.surname || ""}
+              value={collection.surname || ""}
               onChange={(e) =>
                 setCollection({ ...collection, surname: e.target.value })
               }
@@ -192,7 +188,7 @@ export default function AddressForm({
             <input
               type="email"
               className={inputClass}
-              value={displayCollection.email || ""}
+              value={collection.email || ""}
               onChange={(e) =>
                 setCollection({ ...collection, email: e.target.value })
               }
@@ -208,7 +204,7 @@ export default function AddressForm({
             <input
               type="tel"
               className={inputClass}
-              value={displayCollection.phone || ""}
+              value={collection.phone || ""}
               onChange={(e) =>
                 setCollection({ ...collection, phone: e.target.value })
               }
@@ -224,7 +220,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayCollection.companyName || ""}
+              value={collection.companyName || ""}
               onChange={(e) =>
                 setCollection({ ...collection, companyName: e.target.value })
               }
@@ -237,7 +233,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayCollection.addressLine1 || ""}
+              value={collection.addressLine1 || ""}
               onChange={(e) =>
                 setCollection({ ...collection, addressLine1: e.target.value })
               }
@@ -253,7 +249,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayCollection.addressLine2 || ""}
+              value={collection.addressLine2 || ""}
               onChange={(e) =>
                 setCollection({ ...collection, addressLine2: e.target.value })
               }
@@ -266,7 +262,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayCollection.city || ""}
+              value={collection.city || ""}
               onChange={(e) =>
                 setCollection({ ...collection, city: e.target.value })
               }
@@ -282,7 +278,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayCollection.countryState || ""}
+              value={collection.countryState || ""}
               onChange={(e) =>
                 setCollection({ ...collection, countryState: e.target.value })
               }
@@ -297,12 +293,8 @@ export default function AddressForm({
             </label>
             <input
               type="text"
-              className={`${inputClass} ${
-                initialCollection?.postcode
-                  ? "bg-gray-100 cursor-not-allowed"
-                  : ""
-              }`}
-              value={displayCollection.postcode || ""}
+              className={`${inputClass} ${initialCollection?.postcode ? "bg-gray-100 cursor-not-allowed" : ""}`}
+              value={collection.postcode || ""}
               onChange={(e) =>
                 setCollection({ ...collection, postcode: e.target.value })
               }
@@ -317,7 +309,7 @@ export default function AddressForm({
               Country *
             </label>
             <Select
-              value={getCountryIdFromCode(displayCollection.country || "")}
+              value={getCountryIdFromCode(collection.country || "")}
               onValueChange={(value) => {
                 const selectedCountry = countries.find(
                   (country) => country.CountryID.toString() === value
@@ -330,11 +322,7 @@ export default function AddressForm({
               disabled={!!initialCollection?.country}
             >
               <SelectTrigger
-                className={`${inputClass} ${
-                  initialCollection?.country
-                    ? "bg-gray-100 cursor-not-allowed"
-                    : ""
-                }`}
+                className={`${inputClass} ${initialCollection?.country ? "bg-gray-100 cursor-not-allowed" : ""}`}
               >
                 <SelectValue placeholder="Select a country" />
               </SelectTrigger>
@@ -387,7 +375,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayDelivery.forename || ""}
+              value={delivery.forename || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, forename: e.target.value })
               }
@@ -403,7 +391,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayDelivery.surname || ""}
+              value={delivery.surname || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, surname: e.target.value })
               }
@@ -419,7 +407,7 @@ export default function AddressForm({
             <input
               type="email"
               className={inputClass}
-              value={displayDelivery.email || ""}
+              value={delivery.email || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, email: e.target.value })
               }
@@ -435,7 +423,7 @@ export default function AddressForm({
             <input
               type="tel"
               className={inputClass}
-              value={displayDelivery.phone || ""}
+              value={delivery.phone || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, phone: e.target.value })
               }
@@ -451,7 +439,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayDelivery.companyName || ""}
+              value={delivery.companyName || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, companyName: e.target.value })
               }
@@ -464,7 +452,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayDelivery.addressLine1 || ""}
+              value={delivery.addressLine1 || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, addressLine1: e.target.value })
               }
@@ -480,7 +468,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayDelivery.addressLine2 || ""}
+              value={delivery.addressLine2 || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, addressLine2: e.target.value })
               }
@@ -493,7 +481,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayDelivery.city || ""}
+              value={delivery.city || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, city: e.target.value })
               }
@@ -509,7 +497,7 @@ export default function AddressForm({
             <input
               type="text"
               className={inputClass}
-              value={displayDelivery.countryState || ""}
+              value={delivery.countryState || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, countryState: e.target.value })
               }
@@ -524,12 +512,8 @@ export default function AddressForm({
             </label>
             <input
               type="text"
-              className={`${inputClass} ${
-                initialDelivery?.postcode
-                  ? "bg-gray-100 cursor-not-allowed"
-                  : ""
-              }`}
-              value={displayDelivery.postcode || ""}
+              className={`${inputClass} ${initialDelivery?.postcode ? "bg-gray-100 cursor-not-allowed" : ""}`}
+              value={delivery.postcode || ""}
               onChange={(e) =>
                 setDelivery({ ...delivery, postcode: e.target.value })
               }
@@ -544,7 +528,7 @@ export default function AddressForm({
               Country *
             </label>
             <Select
-              value={getCountryIdFromCode(displayDelivery.country || "")}
+              value={getCountryIdFromCode(delivery.country || "")}
               onValueChange={(value) => {
                 const selectedCountry = countries.find(
                   (country) => country.CountryID.toString() === value
@@ -557,11 +541,7 @@ export default function AddressForm({
               disabled={!!initialDelivery?.country}
             >
               <SelectTrigger
-                className={`${inputClass} ${
-                  initialDelivery?.country
-                    ? "bg-gray-100 cursor-not-allowed"
-                    : ""
-                }`}
+                className={`${inputClass} ${initialDelivery?.country ? "bg-gray-100 cursor-not-allowed" : ""}`}
               >
                 <SelectValue placeholder="Select a country" />
               </SelectTrigger>

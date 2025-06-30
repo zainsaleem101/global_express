@@ -11,6 +11,8 @@ import { Badge } from "../../src/components/ui/badge";
 import type { ICountry } from "../../src/lib/models/Country";
 import type { PackageItem } from "../../src/lib/types/shipping";
 import { fetchCountries, useCountries } from "../../src/lib/utils/api";
+import { Calendar } from "../../src/components/ui/calendar";
+import { format, addDays, isWeekend, isToday } from "date-fns";
 
 interface PackageDetailsFormProps {
   onSubmit: (
@@ -144,6 +146,16 @@ export default function PackageDetailsForm({
     }
   };
 
+  // Helper to find the first available date (after today, not a weekend)
+  function getFirstAvailableDate() {
+    let date = addDays(new Date(), 1);
+    while (isWeekend(date)) {
+      date = addDays(date, 1);
+    }
+    return date;
+  }
+  const firstAvailableDate = getFirstAvailableDate();
+
   const inputClass =
     "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors";
   const errorClass = "text-red-500 text-sm mt-1";
@@ -199,12 +211,30 @@ export default function PackageDetailsForm({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Collection Date *
             </label>
-            <input
-              type="date"
-              className={inputClass}
-              value={collectionDate}
-              onChange={(e) => setCollectionDate(e.target.value)}
-            />
+            <div className="relative">
+              <Calendar
+                mode="single"
+                selected={collectionDate ? new Date(collectionDate) : undefined}
+                onSelect={(date) => {
+                  setCollectionDate(date ? format(date, "yyyy-MM-dd") : "");
+                }}
+                disabled={[
+                  (date) => date < new Date(new Date().setHours(0,0,0,0)),
+                  (date) => isToday(date),
+                  (date) => isWeekend(date)
+                ]}
+                initialFocus
+                month={collectionDate ? new Date(collectionDate) : firstAvailableDate}
+                classNames={{
+                  day_selected: "bg-sky-600 text-white hover:bg-sky-700 hover:text-white focus:bg-sky-700 focus:text-white",
+                }}
+              />
+              {collectionDate && (
+                <div className="mt-2 text-sm text-gray-600">
+                  Selected: {format(new Date(collectionDate), "PPP")}
+                </div>
+              )}
+            </div>
             {errors.collectionDate && (
               <p className={errorClass}>{errors.collectionDate}</p>
             )}
