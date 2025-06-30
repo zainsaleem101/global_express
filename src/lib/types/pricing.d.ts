@@ -18,3 +18,11 @@ export interface ConversionRateUpdateResponse {
   usd_conversion_rate: number;
   updated_at: string;
 }
+
+// From src/lib/models/Pricing.ts
+export interface IPricing {
+  usd_conversion_rate: number;
+  markup_percentage: number;
+  createdAt: Date;
+  updatedAt: Date;
+}

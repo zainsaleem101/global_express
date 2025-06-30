@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { Model } from "mongoose";
-import type { IOrder } from "../../../../src/lib/models/Order";
+import type { IOrder } from "../../../../src/lib/types/order";
+import type { Order as OrderType } from "../../../../src/lib/types/order";
 import OrderImport from "../../../../src/lib/models/Order";
 import { verifyTokenWithDetails } from "../../../../src/lib/auth/jwt";
-import type { Order } from "../../../../src/lib/types/order";
 
 const Order = OrderImport as Model<IOrder>;
 
@@ -48,21 +48,13 @@ export async function GET(req: NextRequest) {
     });
 
     // Transform orders to match the Order interface
-    const transformedOrders: Order[] = orders.map((order) => ({
+    const transformedOrders: OrderType[] = orders.map((order) => ({
       _id: order._id.toString(),
       userId: order.userId.toString(),
-      status: order.shipmentDetails.Status.toLowerCase() as
-        | "pending"
-        | "processing"
-        | "shipped"
-        | "delivered"
-        | "cancelled",
-      trackingNumber: order.shipmentDetails.Labels[0]?.AirWaybillReference,
-      serviceType: order.shipmentDetails.Labels[0]?.ServiceName,
-      carrierName: order.shipmentDetails.Labels[0]?.CarrierName,
-      createdAt: order.createdAt.toISOString(),
-      updatedAt: order.updatedAt.toISOString(),
       shipmentDetails: order.shipmentDetails,
+      orderApi: order.orderApi,
+      createdAt: order.createdAt instanceof Date ? order.createdAt.toISOString() : String(order.createdAt),
+      updatedAt: order.updatedAt instanceof Date ? order.updatedAt.toISOString() : String(order.updatedAt),
     }));
 
     return NextResponse.json({ orders: transformedOrders });
@@ -131,12 +123,13 @@ export async function POST(req: NextRequest) {
     await newOrder.save();
 
     // Transform the new order to match the Order interface
-    const transformedOrder: Order = {
+    const transformedOrder: OrderType = {
       _id: newOrder._id.toString(),
       userId: newOrder.userId.toString(),
-      createdAt: newOrder.createdAt.toISOString(),
-      updatedAt: newOrder.updatedAt.toISOString(),
       shipmentDetails: newOrder.shipmentDetails,
+      orderApi: newOrder.orderApi,
+      createdAt: newOrder.createdAt instanceof Date ? newOrder.createdAt.toISOString() : String(newOrder.createdAt),
+      updatedAt: newOrder.updatedAt instanceof Date ? newOrder.updatedAt.toISOString() : String(newOrder.updatedAt),
     };
 
     return NextResponse.json(

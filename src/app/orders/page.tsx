@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../src/components/ui/card";
-import { Badge } from "../../../src/components/ui/badge";
 import {
   Tabs,
   TabsContent,
@@ -21,7 +20,7 @@ import {
   TabsTrigger,
 } from "../../../src/components/ui/tabs";
 import { Skeleton } from "../../../src/components/ui/skeleton";
-import { Package, Truck, Calendar, Clock, ShoppingBag } from "lucide-react";
+import { Package, Truck, Calendar, ShoppingBag } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import type { Order } from "../../../src/lib/types/order";
 import { apiRequest } from "../../../src/lib/utils/api";
@@ -30,7 +29,6 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
   const { isAuthenticated, loading: authLoading } = useAuthStore();
   const router = useRouter();
 

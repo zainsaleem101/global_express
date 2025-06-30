@@ -4,7 +4,6 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { ArrowRight, AlertCircle, Info } from "lucide-react";
-
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -18,7 +17,6 @@ import {
 } from "./ui/select";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import ServiceResultCard from "./ServiceResultCard";
-import type { ICountry } from "../lib/models/Country"; // Import the interface
 import {
   saveFormDataToSession,
   loadFormDataFromSession,
@@ -27,7 +25,7 @@ import {
 import type { PackageDimensions } from "../lib/types/order";
 import type { ServiceResult } from "../lib/types/shipping";
 import type { MinimalFormData } from "../lib/types/shipping";
-import { fetchCountries, useCountries } from "../lib/utils/api";
+import { useCountries } from "../lib/utils/api";
 
 // Export the FormData type for use in the store
 export interface FormData {

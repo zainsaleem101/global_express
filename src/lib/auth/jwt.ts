@@ -1,21 +1,9 @@
 import jwt from "jsonwebtoken";
+import type { UserPayload, TokenVerificationResult } from "../types/user";
 
 // Environment variables should be set in .env.local file
 const JWT_SECRET = process.env.JWT_SECRET || "your-very-secure-secret-key"; // Default for development
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d"; // Default expiry of 7 days
-
-export interface UserPayload {
-  id: string;
-  email: string;
-  name: string;
-}
-
-export interface TokenVerificationResult {
-  valid: boolean;
-  user?: UserPayload;
-  error?: string;
-  expired?: boolean;
-}
 
 /**
  * Generate a JWT token for the user

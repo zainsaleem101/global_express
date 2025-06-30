@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
     // Construct the GetQuote request payload
     const getQuoteRequest = {
       Credentials: {
-        APIKey: process.env.TRANSGLOBAL_API_KEY_TEST || "5heQZ7Xrz3",
-        Password: process.env.TRANSGLOBAL_API_PASSWORD_TEST || "bzHiFd?4Z2",
+        APIKey: process.env.TRANSGLOBAL_API_KEY || "5heQZ7Xrz3",
+        Password: process.env.TRANSGLOBAL_API_PASSWORD || "bzHiFd?4Z2",
       },
       Shipment: {
         Consignment: {

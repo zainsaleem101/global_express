@@ -182,6 +182,7 @@ export async function POST(request: NextRequest) {
     const order = new Order({
       userId: tokenResult.user!.id,
       shipmentDetails: bookShipmentResponse,
+      orderApi: 'transglobal',
     });
     await order.save();
 

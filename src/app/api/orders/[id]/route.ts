@@ -64,6 +64,7 @@ export async function GET(
       _id: order._id.toString(),
       userId: order.userId.toString(),
       shipmentDetails: order.shipmentDetails,
+      orderApi: order.orderApi,
       createdAt: order.createdAt.toISOString(),
       updatedAt: order.updatedAt.toISOString(),
     };

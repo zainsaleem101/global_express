@@ -1,27 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface AuthState {
-  user: User | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  token?: string;
-  authChecked: boolean;
-  setUser: (user: User | null) => void;
-  setLoading: (loading: boolean) => void;
-  setAuthenticated: (isAuthenticated: boolean) => void;
-  login: (user: User, token: string) => void;
-  logout: () => void;
-  forceLogout: () => void;
-  checkAuth: () => Promise<void>;
-  resetAuth: () => void;
-}
+import type { AuthState } from "../types/global";
 
 export const useAuthStore = create<AuthState>()(
   persist(

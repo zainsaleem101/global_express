@@ -121,3 +121,63 @@ export interface MinimalFormData {
   measurementUnit: string;
   packages: PackageDimensions[];
 }
+
+// From src/lib/utils/rate-conversion.ts
+export interface CostObject {
+  TotalCostNetWithCollection?: number;
+  TotalCostNetWithoutCollection?: number;
+  TotalCostGrossWithCollection?: number;
+  TotalCostGrossWithoutCollection?: number;
+  Cost?: number;
+  CollectionCharge?: number;
+}
+
+// ApiResponse from rate-conversion and minimal-shipping-form (merge if needed)
+export interface ApiResponse {
+  Status: string;
+  Notifications: any[];
+  QuoteID: number;
+  ServiceResults: ServiceResult[];
+}
+
+// From src/components/minimal-shipping-form.tsx
+export interface FormData {
+  fromCountry: string;
+  fromPostcode: string;
+  toCountry: string;
+  toPostcode: string;
+  quantity: string;
+  itemType: string;
+  packagingType: string;
+  measurementUnit: string;
+  packages: PackageDimensions[];
+}
+
+export interface ApiNotification {
+  Message: string;
+  Severity: string;
+}
+
+export type ItemTypeKey = 'parcel' | 'document' | 'pallet';
+
+// From src/app/booking/page.tsx
+export interface BookingData {
+  collectionAddress: Address | null;
+  deliveryAddress: Address | null;
+  packageItems: PackageItem[];
+  reasonForShipment: string;
+  collectionDate: string;
+  readyFrom: string;
+}
+
+// From src/lib/store/useShippingStore.ts
+export interface ShippingState {
+  selectedService: ServiceResult | null;
+  measurementUnit: "kg/cm" | "lb/inches";
+  minimalFormData: MinimalFormData | null;
+  setSelectedService: (service: ServiceResult) => void;
+  clearSelectedService: () => void;
+  setMeasurementUnit: (unit: "kg/cm" | "lb/inches") => void;
+  setMinimalFormData: (data: MinimalFormData) => void;
+  clearMinimalFormData: () => void;
+}

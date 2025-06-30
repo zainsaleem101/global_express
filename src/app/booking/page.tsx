@@ -10,7 +10,6 @@ import {
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import { Separator } from "../../components/ui/separator";
 import AddressForm from "../../components/AddressForm";
 import PackageDetailsForm from "../../components/PackageDetailsForm";
 import { useAuthStore } from "../../lib/store/useAuthStore";
@@ -157,21 +156,32 @@ export default function BookingPage() {
         toCountryCode
       );
 
-      const emptyAddress: Address = {
-        forename: "",
-        surname: "",
-        email: "",
-        phone: "",
-        companyName: "",
-        addressLine1: "",
-        addressLine2: "",
-        city: "",
-        countryState: "",
+      // Load sender address from localStorage if available
+      let senderAddress: Partial<Address> = {};
+      try {
+        const savedSender = localStorage.getItem("senderAddress");
+        if (savedSender) {
+          senderAddress = JSON.parse(savedSender);
+        }
+      } catch (e) {
+        senderAddress = {};
+      }
+
+      const preFilledCollection = {
+        forename: senderAddress?.forename || "",
+        surname: senderAddress?.surname || "",
+        email: senderAddress?.email || "",
+        phone: senderAddress?.phone || "",
+        companyName: senderAddress?.companyName || "",
+        addressLine1: senderAddress?.addressLine1 || "",
+        addressLine2: senderAddress?.addressLine2 || "",
+        city: senderAddress?.city || "",
+        countryState: senderAddress?.countryState || "",
         postcode: minimalFormData.fromPostcode || "",
         country: fromCountryCode,
       };
 
-      const preFilledDelivery: Address = {
+      const preFilledDelivery = {
         forename: "",
         surname: "",
         email: "",
@@ -185,17 +195,17 @@ export default function BookingPage() {
         country: toCountryCode,
       };
 
-      console.log("Pre-filled collection address:", emptyAddress);
+      console.log("Pre-filled collection address:", preFilledCollection);
       console.log("Pre-filled delivery address:", preFilledDelivery);
 
       // Use saved data if available, otherwise use pre-filled data
       if (parsedData?.collectionAddress) {
         setCollectionAddress({
-          ...emptyAddress,
+          ...preFilledCollection,
           ...parsedData.collectionAddress,
         });
       } else {
-        setCollectionAddress(emptyAddress);
+        setCollectionAddress(preFilledCollection);
       }
 
       if (parsedData?.deliveryAddress) {
@@ -264,6 +274,12 @@ export default function BookingPage() {
   };
 
   const handleAddressSubmit = (collection: Address, delivery: Address) => {
+    // Save sender's address (except postcode and country) to localStorage
+    const senderToSave = { ...collection };
+    delete senderToSave.postcode;
+    delete senderToSave.country;
+    localStorage.setItem("senderAddress", JSON.stringify(senderToSave));
+
     setCollectionAddress(collection);
     setDeliveryAddress(delivery);
     saveToLocalStorage({
@@ -605,35 +621,13 @@ export default function BookingPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <AddressForm
-                    onSubmit={handleAddressSubmit}
-                    initialCollection={{
-                      forename: "",
-                      surname: "",
-                      email: "",
-                      phone: "",
-                      companyName: "",
-                      addressLine1: "",
-                      addressLine2: "",
-                      city: "",
-                      countryState: "",
-                      postcode: minimalFormData?.fromPostcode || "",
-                      country: fromCountryCode,
-                    }}
-                    initialDelivery={{
-                      forename: "",
-                      surname: "",
-                      email: "",
-                      phone: "",
-                      companyName: "",
-                      addressLine1: "",
-                      addressLine2: "",
-                      city: "",
-                      countryState: "",
-                      postcode: minimalFormData?.toPostcode || "",
-                      country: toCountryCode,
-                    }}
-                  />
+                  {collectionAddress && (
+                    <AddressForm
+                      onSubmit={handleAddressSubmit}
+                      initialCollection={collectionAddress}
+                      initialDelivery={deliveryAddress}
+                    />
+                  )}
                 </CardContent>
               </Card>
             )}

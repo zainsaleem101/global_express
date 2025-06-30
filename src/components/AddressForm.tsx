@@ -7,9 +7,8 @@ import {
   SelectValue,
 } from "../../src/components/ui/select";
 import { Button } from "../../src/components/ui/button";
-import type { ICountry } from "../../src/lib/models/Country";
 import type { Address } from "../../src/lib/types/shipping";
-import { fetchCountries, useCountries } from "../../src/lib/utils/api";
+import { useCountries } from "../../src/lib/utils/api";
 
 interface AddressFormProps {
   onSubmit: (collection: Address, delivery: Address) => void;

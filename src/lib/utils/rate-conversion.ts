@@ -1,27 +1,5 @@
 import { getCachedPricing } from "./pricing-cache";
-
-interface CostObject {
-  TotalCostNetWithCollection?: number;
-  TotalCostNetWithoutCollection?: number;
-  TotalCostGrossWithCollection?: number;
-  TotalCostGrossWithoutCollection?: number;
-  Cost?: number;
-  CollectionCharge?: number;
-}
-
-interface ServiceResult {
-  TotalCost: CostObject;
-  ServicePriceBreakdown: CostObject[];
-  OptionalExtras: CostObject[];
-  CollectionOptions: Array<{ CollectionCharge: number; ExpectedLabel: any }>;
-}
-
-interface ApiResponse {
-  Status: string;
-  Notifications: any[];
-  QuoteID: number;
-  ServiceResults: ServiceResult[];
-}
+import type { ApiResponse } from "../types/shipping";
 
 export async function convertToUSD(apiData: ApiResponse): Promise<ApiResponse> {
   const pricing = await getCachedPricing();

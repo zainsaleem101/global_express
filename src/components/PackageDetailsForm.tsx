@@ -8,9 +8,8 @@ import {
 } from "../../src/components/ui/select";
 import { Button } from "../../src/components/ui/button";
 import { Badge } from "../../src/components/ui/badge";
-import type { ICountry } from "../../src/lib/models/Country";
 import type { PackageItem } from "../../src/lib/types/shipping";
-import { fetchCountries, useCountries } from "../../src/lib/utils/api";
+import { useCountries } from "../../src/lib/utils/api";
 import { Calendar } from "../../src/components/ui/calendar";
 import { format, addDays, isWeekend, isToday } from "date-fns";
 

@@ -1,17 +1,5 @@
 import { create } from "zustand";
-import type { ServiceResult } from "../../lib/types/shipping";
-import type { MinimalFormData } from "../../lib/types/shipping";
-
-interface ShippingState {
-  selectedService: ServiceResult | null;
-  measurementUnit: "kg/cm" | "lb/inches";
-  minimalFormData: MinimalFormData | null;
-  setSelectedService: (service: ServiceResult) => void;
-  clearSelectedService: () => void;
-  setMeasurementUnit: (unit: "kg/cm" | "lb/inches") => void;
-  setMinimalFormData: (data: MinimalFormData) => void;
-  clearMinimalFormData: () => void;
-}
+import type { MinimalFormData, ShippingState } from "../types/shipping";
 
 export const useShippingStore = create<ShippingState>((set) => ({
   selectedService: null,

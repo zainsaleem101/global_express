@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   User,
   LogIn,
@@ -19,7 +19,6 @@ import { useAuthStore } from "../../src/lib/store/useAuthStore";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Get auth state from Zustand store

@@ -1,19 +1,16 @@
-import mongoose, { Schema, model, models, Document, Types } from "mongoose";
-import type { IUser } from "./User";
-
-// Define the Order interface
-export interface IOrder extends Document {
-  userId: Types.ObjectId | IUser;
-  shipmentDetails: any;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose, { Schema, model, models } from "mongoose";
+import type { IOrder } from "../types/order";
 
 // Define the Order schema
-const OrderSchema: Schema<IOrder> = new Schema<IOrder>(
+const OrderSchema = new Schema<IOrder>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     shipmentDetails: { type: Schema.Types.Mixed, required: true },
+    orderApi: {
+      type: String,
+      enum: ["transglobal", "parcel2go"],
+      required: true,
+    },
   },
   { timestamps: true }
 );
