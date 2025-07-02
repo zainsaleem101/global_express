@@ -35,22 +35,6 @@ export function generateToken(user: UserPayload): string {
 }
 
 /**
- * Verify a JWT token and return the decoded data
- */
-export function verifyToken(token: string): UserPayload | null {
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
-    return decoded;
-  } catch (error) {
-    // Only log in development environment
-    if (process.env.NODE_ENV === "development") {
-      console.error("Token verification failed:", error);
-    }
-    return null;
-  }
-}
-
-/**
  * Verify a JWT token and return detailed result
  */
 export function verifyTokenWithDetails(token: string): TokenVerificationResult {
@@ -72,17 +56,4 @@ export function verifyTokenWithDetails(token: string): TokenVerificationResult {
       expired: error.name === "TokenExpiredError",
     };
   }
-}
-
-/**
- * Parse the Authorization header and extract the token
- */
-export function extractTokenFromHeader(
-  authHeader: string | null
-): string | null {
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-
-  return authHeader.substring(7); // Remove 'Bearer ' prefix
 }
